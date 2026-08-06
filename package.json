@@ -1,12 +1,5 @@
 {
   "name": "banorte-carros",
   "private": true,
-  "scripts": {
-    "dev": "npm run dev --prefix movilidad-corporativa",
-    "build": "npm run build --prefix movilidad-corporativa",
-    "start": "npm run start --prefix movilidad-corporativa"
-  },
-  "engines": {
-    "node": ">=20.0.0"
-  }
+  "description": "Plataforma de movilidad corporativa Banorte - monorepo root"
 }
