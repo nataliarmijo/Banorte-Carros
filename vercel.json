@@ -1,0 +1,6 @@
+{
+  "framework": "nextjs",
+  "installCommand": "npm install --prefix movilidad-corporativa",
+  "buildCommand": "npm run build --prefix movilidad-corporativa",
+  "outputDirectory": "movilidad-corporativa/.next"
+}
