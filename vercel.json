@@ -1,6 +1,5 @@
 {
-  "framework": "nextjs",
-  "rootDirectory": "movilidad-corporativa",
   "buildCommand": "npm run build",
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "rootDirectory": "movilidad-corporativa"
 }
