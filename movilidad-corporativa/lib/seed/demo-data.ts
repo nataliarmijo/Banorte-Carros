@@ -22,19 +22,21 @@ import type {
 import { format } from "date-fns";
 
 const baseDate = new Date("2025-01-15T08:30:00");
-const buildDate = (offsetDays: number, hour: string) => {
+const buildDateTime = (offsetDays: number, hour: string, minute = "30") => {
   const date = new Date(baseDate);
   date.setDate(baseDate.getDate() + offsetDays);
-  return format(date, `yyyy-MM-dd'T'${hour}:ssXXX`);
+  const [hours, mins] = [Number(hour), Number(minute)];
+  date.setHours(hours, mins, 0, 0);
+  return format(date, "yyyy-MM-dd'T'HH:mm:ssXXX");
 };
 
 const createBaseEntity = (id: string, usuarioId: string, estatus: "ACTIVO" | "PENDIENTE" | "COMPLETADA" | "CANCELADA" = "ACTIVO") => ({
   id,
-  fechaCreacion: buildDate(0, "08:30"),
-  fechaActualizacion: buildDate(0, "08:30"),
+  fechaCreacion: buildDateTime(0, "08", "30"),
+  fechaActualizacion: buildDateTime(0, "08", "30"),
   usuarioCreadorId: usuarioId,
   estatus,
-  historialCambios: [{ id: `${id}-hist-1`, fecha: buildDate(0, "08:30"), usuarioId, accion: "CREADO", detalle: "Registro inicial" }],
+  historialCambios: [{ id: `${id}-hist-1`, fecha: buildDateTime(0, "08", "30"), usuarioId, accion: "CREADO", detalle: "Registro inicial" }],
 });
 
 export const demoRoles: Rol[] = [
