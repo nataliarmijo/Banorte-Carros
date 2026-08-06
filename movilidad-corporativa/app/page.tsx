@@ -9,7 +9,7 @@ export default function HomePage() {
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">Resumen operativo</p>
             <h2 className="mt-2 text-2xl font-semibold text-slate-900">Flotilla corporativa preparada para el siguiente chunk</h2>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
-              El proyecto ya tiene la base visual, el modelo de datos y los motores de negocio desacoplados de la interfaz para avanzar con solicitudes, aprobaciones y asignación inteligente.
+              El proyecto ya tiene la base visual, el modelo de datos, los motores de negocio desacoplados de la interfaz, y ahora el shell de navegación con selección de rol.
             </p>
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
               <div className="rounded-2xl bg-slate-50 p-4">
