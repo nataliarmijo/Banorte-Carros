@@ -88,16 +88,28 @@ export interface Vehiculo extends BaseEntity {
 }
 
 export interface Solicitud extends BaseEntity {
+  folio: string;
   usuarioSolicitanteId: string;
   territorioId: string;
   fechaSolicitud: string;
   horaInicioDeseada: string;
   horaFinDeseada: string;
+  fechaRegreso?: string;
   origen: string;
   destino: string;
+  distanciaEstimadaKm?: number;
+  duracionEstimadaMinutos?: number;
+  pasajeros?: number;
+  tipoVehiculoRequerido?: string;
+  necesidadesEspeciales?: string;
+  transportaEquipo?: boolean;
   motivoViaje: string;
   tipoViaje: string;
   modalidadRequerida: ModalidadVehiculo;
+  costoEstimado?: number;
+  emisionesEstimadasGramos?: number;
+  requiereAprobacionEspecial?: boolean;
+  motivoAprobacionEspecial?: string;
   estadoSolicitud: EstadoSolicitud;
   prioridad: NivelPrioridad;
 }

@@ -25,6 +25,16 @@ function resultadoCostoInvalido(notas: string[]): ResultadoCosto {
   };
 }
 
+/** Estima el costo de casetas para un viaje, a partir de la distancia. */
+export function estimarCasetas(km: number): number {
+  return Math.max(PARAMS_CONFIG.casetas.minimo, km * PARAMS_CONFIG.casetas.porcentajePorKm);
+}
+
+/** Estima el costo de estacionamiento para un viaje, a partir de su duración. */
+export function estimarEstacionamiento(duracionMinutos: number): number {
+  return (duracionMinutos / 60) * PARAMS_CONFIG.estacionamiento.costoPorMinuto;
+}
+
 interface ParametrosCostoVehiculo {
   km: number;
   tipoVehiculo: TipoVehiculo;
