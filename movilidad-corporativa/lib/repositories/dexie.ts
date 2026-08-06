@@ -6,11 +6,11 @@ import type {
   Costo,
   EscenarioBase,
   FactorEmision,
-  HistorialAuditoria,
   Incidencia,
   Mantenimiento,
   MetaGerencial,
   Notificacion,
+  RegistroAuditoria,
   Reservacion,
   Rol,
   Solicitud,
@@ -40,30 +40,30 @@ export class MobilityDexieDB extends Dexie {
   escenariosBase!: Table<EscenarioBase, string>;
   metasGerenciales!: Table<MetaGerencial, string>;
   notificaciones!: Table<Notificacion, string>;
-  historialAuditoria!: Table<HistorialAuditoria, string>;
+  registrosAuditoria!: Table<RegistroAuditoria, string>;
 
   constructor() {
     super("movilidad-corporativa-db");
     this.version(1).stores({
-      usuarios: "id, correoCorporativo, rol, territorioId, status",
-      roles: "id, nombreRol, status",
-      territorios: "id, codigoTerritorio, responsableId, status",
-      vehiculos: "id, modalidad, territorioId, estadoOperativo, disponibilidadActual, status",
-      solicitudes: "id, usuarioSolicitanteId, territorioId, estadoSolicitud, fechaSolicitud, status",
-      reservaciones: "id, solicitudId, vehiculoId, estadoReservacion, status",
-      aprobaciones: "id, solicitudId, aprobadorId, decision, status",
-      checkIns: "id, reservacionId, usuarioId, status",
-      checkOuts: "id, reservacionId, usuarioId, status",
-      incidencias: "id, reservacionId, vehiculoId, estadoIncidencia, status",
-      mantenimientos: "id, vehiculoId, tipoMantenimiento, status",
-      ubicacionesGPS: "id, vehiculoId, timestampLectura, status",
-      tarifas: "id, modalidad, status",
-      costos: "id, reservacionId, tarifaId, status",
-      factoresEmision: "id, modalidad, status",
-      escenariosBase: "id, periodo, status",
-      metasGerenciales: "id, territorioId, tipoMeta, status",
-      notificaciones: "id, usuarioDestinoId, solicitudId, leida, status",
-      historialAuditoria: "id, entidad, entidadId, usuarioId, fechaCambio, status",
+      usuarios: "id, correoCorporativo, rol, territorioId, estatus",
+      roles: "id, nombreRol, estatus",
+      territorios: "id, codigoTerritorio, responsableId, estatus",
+      vehiculos: "id, modalidad, territorioId, estadoOperativo, disponibilidadActual, estatus",
+      solicitudes: "id, usuarioSolicitanteId, territorioId, estadoSolicitud, fechaSolicitud, estatus",
+      reservaciones: "id, solicitudId, vehiculoId, estadoReservacion, estatus",
+      aprobaciones: "id, solicitudId, aprobadorId, decision, estatus",
+      checkIns: "id, reservacionId, usuarioId, estatus",
+      checkOuts: "id, reservacionId, usuarioId, estatus",
+      incidencias: "id, reservacionId, vehiculoId, estadoIncidencia, estatus",
+      mantenimientos: "id, vehiculoId, tipoMantenimiento, estatus",
+      ubicacionesGPS: "id, vehiculoId, timestampLectura, estatus",
+      tarifas: "id, modalidad, estatus",
+      costos: "id, reservacionId, tarifaId, estatus",
+      factoresEmision: "id, modalidad, tipoCombustible, tipoVehiculo, estatus",
+      escenariosBase: "id, periodo, estatus",
+      metasGerenciales: "id, territorioId, tipoMeta, estatus",
+      notificaciones: "id, usuarioDestinoId, solicitudId, leida, estatus",
+      registrosAuditoria: "id, entidad, entidadId, usuarioId, fechaCambio, estatus",
     });
   }
 }

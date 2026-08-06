@@ -5,22 +5,49 @@ export type RolNombre =
   | "EJECUTIVO";
 
 export type ModalidadVehiculo = "POOL" | "ASIGNADO" | "UBER";
-export type Estatus = "ACTIVO" | "INACTIVO" | "PENDIENTE" | "COMPLETADO" | "CANCELADO";
-export type EstadoSolicitud =
+export type EstatusEntidad =
+  | "ACTIVO"
+  | "INACTIVO"
   | "BORRADOR"
-  | "EN_REVISION"
+  | "PENDIENTE"
   | "APROBADA"
   | "RECHAZADA"
   | "ASIGNADA"
   | "EN_CURSO"
-  | "FINALIZADA";
+  | "COMPLETADA"
+  | "CANCELADA"
+  | "RESUELTA"
+  | "ABIERTA"
+  | "EN_PROCESO";
+export type EstadoSolicitud =
+  | "BORRADOR"
+  | "PENDIENTE_APROBACION"
+  | "APROBADA"
+  | "RECHAZADA"
+  | "ASIGNADA"
+  | "LISTA_CHECK_IN"
+  | "EN_CURSO"
+  | "COMPLETADA"
+  | "CANCELADA";
+export type EstadoIncidencia = "ABIERTA" | "EN_PROCESO" | "RESUELTA" | "CRITICA";
+export type NivelPrioridad = "BAJA" | "MEDIA" | "ALTA" | "CRITICA";
+export type DecisionAprobacion = "PENDIENTE" | "APROBADA" | "RECHAZADA";
+
+export interface HistorialCambio {
+  id: string;
+  fecha: string;
+  usuarioId: string;
+  accion: string;
+  detalle: string;
+}
 
 export interface BaseEntity {
   id: string;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
-  status: Estatus;
+  fechaCreacion: string;
+  fechaActualizacion: string;
+  usuarioCreadorId: string;
+  estatus: EstatusEntidad;
+  historialCambios?: HistorialCambio[];
 }
 
 export interface Usuario extends BaseEntity {
@@ -41,6 +68,7 @@ export interface Territorio extends BaseEntity {
   nombreTerritorio: string;
   codigoTerritorio: string;
   responsableId: string;
+  region: string;
 }
 
 export interface Vehiculo extends BaseEntity {
@@ -52,6 +80,7 @@ export interface Vehiculo extends BaseEntity {
   capacidadPasajeros: number;
   combustibleTipo: string;
   kilometrajeActual: number;
+  rendimientoKmPorLitro: number;
   estadoOperativo: "DISPONIBLE" | "OCUPADO" | "EN_MANTENIMIENTO" | "FUERA_DE_SERVICIO";
   disponibilidadActual: boolean;
   costoPorKm: number;
@@ -70,7 +99,7 @@ export interface Solicitud extends BaseEntity {
   tipoViaje: string;
   modalidadRequerida: ModalidadVehiculo;
   estadoSolicitud: EstadoSolicitud;
-  prioridad: "BAJA" | "MEDIA" | "ALTA";
+  prioridad: NivelPrioridad;
 }
 
 export interface Reservacion extends BaseEntity {
@@ -87,7 +116,7 @@ export interface Reservacion extends BaseEntity {
 export interface Aprobacion extends BaseEntity {
   solicitudId: string;
   aprobadorId: string;
-  decision: "APROBADA" | "RECHAZADA" | "PENDIENTE";
+  decision: DecisionAprobacion;
   comentario?: string;
   reglaAplicada: string;
   fechaDecision: string;
@@ -115,10 +144,10 @@ export interface Incidencia extends BaseEntity {
   vehiculoId: string;
   usuarioReportaId: string;
   tipoIncidencia: string;
-  severidad: "BAJA" | "MEDIA" | "ALTA";
+  severidad: NivelPrioridad;
   descripcion: string;
   evidenciaUrl?: string;
-  estadoIncidencia: "ABIERTA" | "EN_PROCESO" | "RESUELTA";
+  estadoIncidencia: EstadoIncidencia;
 }
 
 export interface Mantenimiento extends BaseEntity {
@@ -160,6 +189,8 @@ export interface Costo extends BaseEntity {
 
 export interface FactorEmision extends BaseEntity {
   modalidad: ModalidadVehiculo;
+  tipoCombustible: string;
+  tipoVehiculo: string;
   unidad: string;
   factor: number;
   fuente: string;
@@ -172,6 +203,7 @@ export interface EscenarioBase extends BaseEntity {
   periodo: string;
   costoBaseEstimado: number;
   emisionesBaseEstimadas: number;
+  configuracion: string;
 }
 
 export interface MetaGerencial extends BaseEntity {
@@ -190,7 +222,7 @@ export interface Notificacion extends BaseEntity {
   canal: string;
 }
 
-export interface HistorialAuditoria extends BaseEntity {
+export interface RegistroAuditoria extends BaseEntity {
   entidad: string;
   entidadId: string;
   accion: string;
