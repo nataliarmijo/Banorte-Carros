@@ -6,6 +6,9 @@
 export * from "./params";
 export * from "./costos";
 export * from "./emisiones";
+export * from "./asignacion";
+
+import { validarPesosAsignacion } from "./asignacion";
 
 /**
  * Función para validar que la configuración es consistente
@@ -17,8 +20,12 @@ export function validarConfiguracion(): {
 } {
   const errores: string[] = [];
 
-  // Validaciones básicas pueden añadirse aquí
-  // Por ahora, retorna que todo es válido
+  const pesosAsignacion = validarPesosAsignacion();
+  if (!pesosAsignacion.validos) {
+    errores.push(
+      `Los pesos de ASIGNACION_CONFIG.pesos deben sumar 1.0, suman ${pesosAsignacion.sumaTotal}`
+    );
+  }
 
   return {
     valida: errores.length === 0,
