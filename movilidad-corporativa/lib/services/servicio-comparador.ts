@@ -147,7 +147,7 @@ function elegirRecomendacion(params: {
   };
 }
 
-function evaluarAprobacionEspecial(
+export function evaluarAprobacionEspecial(
   solicitud: BorradorSolicitud,
   costoElegido: number,
   limiteCostoAprobacion: number
@@ -296,4 +296,5 @@ export function compararAlternativas(
 
 export const servicioComparador = {
   compararAlternativas,
+  evaluarAprobacionEspecial,
 };

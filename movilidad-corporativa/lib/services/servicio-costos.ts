@@ -87,11 +87,8 @@ export function calcularCostoVehiculo(
   const administrativo = fijosPorKm.administrativo * km;
   const entregaRecepcion =
     (PARAMS_CONFIG.entregaRecepcion.minutosEstimados / 60) * config.costoEntregaRecepcionHora;
-  const estacionamiento = (minutos / 60) * PARAMS_CONFIG.estacionamiento.costoPorMinuto;
-  const casetas = Math.max(
-    PARAMS_CONFIG.casetas.minimo,
-    km * PARAMS_CONFIG.casetas.porcentajePorKm
-  );
+  const estacionamiento = estimarEstacionamiento(minutos);
+  const casetas = estimarCasetas(km);
 
   const costoTotal =
     combustible +
@@ -219,4 +216,6 @@ export const servicioCostos = {
   calcularCostoUber,
   estimarFactorDemandaUber,
   compararCostos,
+  estimarCasetas,
+  estimarEstacionamiento,
 };
