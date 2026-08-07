@@ -167,12 +167,15 @@ describe("/operacion (Admin Flota)", () => {
   });
 
   it("lista candidatos de reasignación compatibles (misma modalidad y territorio, disponibles, excluyendo el actual)", async () => {
+    // Periodo lejano en el futuro para no chocar con las reservaciones de la
+    // demo ancladas a fechas fijas (p. ej. res-5 ocupa veh-8 el día de hoy).
+    const enTreintaDias = Date.now() + 30 * 24 * 60 * 60 * 1000;
     const reservacion = crearReservacion({
       id: "res-op-candidatos",
       solicitudId: "sol-op-candidatos",
       vehiculoId: "veh-1", // POOL, territorio-cdmx
-      fechaInicio: new Date().toISOString(),
-      fechaFin: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
+      fechaInicio: new Date(enTreintaDias).toISOString(),
+      fechaFin: new Date(enTreintaDias + 3 * 60 * 60 * 1000).toISOString(),
       estadoReservacion: "ASIGNADA",
       modalidadAsignada: "POOL",
     });
