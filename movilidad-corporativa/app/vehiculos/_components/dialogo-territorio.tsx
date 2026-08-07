@@ -24,6 +24,7 @@ import {
 import { PARAMS_CONFIG } from "@/lib/config/params";
 import { cambiarTerritorio } from "@/lib/adapters/vehiculos";
 import { esResultadoSinDatos } from "@/lib/services/types";
+import { toast } from "@/lib/toast";
 
 const TERRITORIO_ITEMS: Record<string, string> = Object.fromEntries(
   Object.entries(PARAMS_CONFIG.territorios).map(([id, info]) => [id, info.nombre])
@@ -51,8 +52,10 @@ export function DialogoTerritorio({ vehiculoId, placa, territorioActualId, usuar
       const resultado = await cambiarTerritorio(vehiculoId, territorioNuevo, usuarioId);
       if (esResultadoSinDatos(resultado)) {
         setError(resultado.detalle);
+        toast.error("No se pudo cambiar el territorio", resultado.detalle);
         return;
       }
+      toast.success(`${placa} se movió a ${TERRITORIO_ITEMS[territorioNuevo]}`);
       setOpen(false);
       await onConfirmado();
     } finally {

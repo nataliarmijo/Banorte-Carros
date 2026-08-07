@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { programarMantenimiento } from "@/lib/adapters/vehiculos";
 import { esResultadoSinDatos } from "@/lib/services/types";
+import { toast } from "@/lib/toast";
 
 interface DialogoMantenimientoProps {
   vehiculoId: string;
@@ -44,8 +45,10 @@ export function DialogoMantenimiento({ vehiculoId, placa, usuarioId, onConfirmad
       const resultado = await programarMantenimiento(vehiculoId, { fechaProgramada, tipoMantenimiento, responsable }, usuarioId);
       if (esResultadoSinDatos(resultado)) {
         setError(resultado.detalle);
+        toast.error("No se pudo programar el mantenimiento", resultado.detalle);
         return;
       }
+      toast.success("Mantenimiento programado", placa);
       setOpen(false);
       setFechaProgramada("");
       setTipoMantenimiento("");

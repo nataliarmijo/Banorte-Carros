@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { db } from "@/lib/repositories/dexie";
 import { initializeDemoData, resetDemoData } from "@/lib/seed/init";
 import { useSessionStore } from "@/lib/stores/session";
+import { toast } from "@/lib/toast";
 import {
   listarAuditoriaReciente,
   listarTerritoriosConConteos,
@@ -87,6 +88,7 @@ export default function AdministracionPage() {
   async function manejarReset() {
     await resetDemoData();
     await cargar();
+    toast.success("Datos de demostración restablecidos");
   }
 
   return (

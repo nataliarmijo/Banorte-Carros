@@ -205,7 +205,7 @@ export function puntajeIncidencias(vehiculo: VehiculoCandidato): number {
   return clamp(1 - vehiculo.incidenciasRecientes / maximasEsperadas, 0, 1);
 }
 
-function puntuarVehiculo(
+export function puntuarVehiculo(
   vehiculo: VehiculoCandidato,
   solicitud: SolicitudAsignacion,
   candidatosDisponibles: VehiculoCandidato[]

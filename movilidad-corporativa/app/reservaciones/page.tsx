@@ -13,6 +13,7 @@ import {
   type SolicitudListItem,
 } from "@/lib/adapters/reservaciones";
 import { esResultadoSinDatos } from "@/lib/services/types";
+import { toast } from "@/lib/toast";
 import { MEDIO_LABELS } from "@/lib/ui/estado-solicitud";
 import { PARAMS_CONFIG } from "@/lib/config/params";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -62,8 +63,10 @@ export default function ReservacionesPage() {
     const resultado = await cancelarSolicitud(solicitudId, usuarioActivo.id);
     if (esResultadoSinDatos(resultado)) {
       setErrorAccion(resultado.detalle);
+      toast.error("No se pudo cancelar", resultado.detalle);
       return;
     }
+    toast.success("Reservación cancelada");
     await cargar();
   }
 

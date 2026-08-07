@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { initializeDemoData } from "@/lib/seed/init";
 import { useSessionStore } from "@/lib/stores/session";
+import { toast } from "@/lib/toast";
 import {
   fechaLocalISO,
   marcarCoordinacion,
@@ -83,6 +84,7 @@ export default function OperacionPage() {
     setProcesandoId(reservacionId);
     try {
       await marcarCoordinacion(reservacionId, tipo, usuarioActivo.id);
+      toast.success(tipo === "ENTREGA" ? "Entrega marcada como coordinada" : "Devolución marcada como coordinada");
       await cargar();
     } finally {
       setProcesandoId(null);

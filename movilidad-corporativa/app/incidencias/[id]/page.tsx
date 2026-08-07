@@ -26,6 +26,7 @@ import {
   type DetalleIncidencia,
 } from "@/lib/adapters/incidencias";
 import { esResultadoSinDatos } from "@/lib/services/types";
+import { toast } from "@/lib/toast";
 import {
   ESTADO_INCIDENCIA_ESTILOS,
   ESTADO_INCIDENCIA_LABELS,
@@ -88,8 +89,10 @@ export default function DetalleIncidenciaPage() {
       const resultado = await agregarComentarioBitacora(id, comentario, usuarioActivo.id);
       if (esResultadoSinDatos(resultado)) {
         setErrorComentario(resultado.detalle);
+        toast.error("No se pudo agregar el comentario", resultado.detalle);
         return;
       }
+      toast.success("Comentario agregado a la bitácora");
       setComentario("");
       await cargar();
     } finally {
@@ -105,8 +108,10 @@ export default function DetalleIncidenciaPage() {
       const resultado = await asignarResponsable(id, responsableSeleccionado, usuarioActivo.id);
       if (esResultadoSinDatos(resultado)) {
         setErrorResponsable(resultado.detalle);
+        toast.error("No se pudo asignar el responsable", resultado.detalle);
         return;
       }
+      toast.success("Responsable asignado");
       await cargar();
     } finally {
       setEnviandoResponsable(false);

@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { bloquearVehiculo, desbloquearVehiculo } from "@/lib/adapters/vehiculos";
 import { esResultadoSinDatos } from "@/lib/services/types";
+import { toast } from "@/lib/toast";
 
 interface DialogoBloqueoProps {
   vehiculoId: string;
@@ -42,8 +43,10 @@ export function DialogoBloqueo({ vehiculoId, placa, bloqueado, usuarioId, onConf
         : await bloquearVehiculo(vehiculoId, motivo, usuarioId);
       if (esResultadoSinDatos(resultado)) {
         setError(resultado.detalle);
+        toast.error(bloqueado ? "No se pudo desbloquear" : "No se pudo bloquear", resultado.detalle);
         return;
       }
+      toast.success(bloqueado ? `${placa} desbloqueado` : `${placa} bloqueado`);
       setOpen(false);
       setMotivo("");
       await onConfirmado();

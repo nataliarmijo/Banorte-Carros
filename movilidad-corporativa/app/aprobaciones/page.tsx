@@ -7,6 +7,7 @@ import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { initializeDemoData } from "@/lib/seed/init";
 import { useSessionStore } from "@/lib/stores/session";
 import { esResultadoSinDatos } from "@/lib/services/types";
+import { toast } from "@/lib/toast";
 import {
   decidirSolicitud,
   listarSolicitudesPendientes,
@@ -58,8 +59,12 @@ export default function AprobacionesPage() {
       const resultado = await decidirSolicitud({ solicitudId, aprobadorId: usuarioActivo.id, decision, comentario });
       if (esResultadoSinDatos(resultado)) {
         setAvisoAccion(resultado.detalle);
+        toast.error("No se pudo procesar la decisión", resultado.detalle);
         return;
       }
+      toast.success(
+        decision === "APROBAR" ? "Solicitud aprobada" : decision === "RECHAZAR" ? "Solicitud rechazada" : "Cambios solicitados al colaborador"
+      );
       await cargar();
     } finally {
       setProcesandoId(null);

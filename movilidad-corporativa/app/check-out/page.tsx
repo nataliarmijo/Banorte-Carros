@@ -33,6 +33,7 @@ import {
 } from "@/lib/adapters/checkout";
 import { validarDatosCheckOut } from "@/lib/services/servicio-checkout";
 import { esResultadoSinDatos } from "@/lib/services/types";
+import { toast } from "@/lib/toast";
 import type { EstadoVehiculoDevolucion } from "@/lib/models";
 
 const PRESETS_COMBUSTIBLE = [0, 25, 50, 75, 100];
@@ -140,13 +141,17 @@ function CheckOutContent() {
 
       if (esResultadoSinDatos(resultado)) {
         setErrorEnvio(resultado.detalle);
+        toast.error("No se pudo registrar el check-out", resultado.detalle);
         return;
       }
 
+      toast.success("Check-out confirmado");
       setResumen(resultado.resumen);
       setEstado("exito");
     } catch (error) {
-      setErrorEnvio(error instanceof Error ? error.message : "Ocurrió un error inesperado al registrar el check-out.");
+      const mensaje = error instanceof Error ? error.message : "Ocurrió un error inesperado al registrar el check-out.";
+      setErrorEnvio(mensaje);
+      toast.error("No se pudo registrar el check-out", mensaje);
     } finally {
       setEnviando(false);
     }

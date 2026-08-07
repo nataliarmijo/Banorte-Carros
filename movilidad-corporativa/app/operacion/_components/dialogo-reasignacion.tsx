@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { listarCandidatosReasignacion, reasignarVehiculoOperacion } from "@/lib/adapters/operacion";
 import { esResultadoSinDatos } from "@/lib/services/types";
+import { toast } from "@/lib/toast";
 import type { Reservacion, Solicitud, Vehiculo } from "@/lib/models";
 
 interface DialogoReasignacionProps {
@@ -67,8 +68,10 @@ export function DialogoReasignacion({
       });
       if (esResultadoSinDatos(resultado)) {
         setError(resultado.detalle);
+        toast.error("No se pudo reasignar el vehículo", resultado.detalle);
         return;
       }
+      toast.success("Vehículo reasignado");
       setOpen(false);
       setJustificacion("");
       await onReasignado();

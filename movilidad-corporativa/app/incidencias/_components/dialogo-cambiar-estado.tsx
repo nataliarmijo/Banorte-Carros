@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cambiarEstadoIncidencia } from "@/lib/adapters/incidencias";
 import { esResultadoSinDatos } from "@/lib/services/types";
+import { toast } from "@/lib/toast";
 import { ESTADO_INCIDENCIA_LABELS } from "@/lib/ui/incidencias";
 import type { EstadoIncidencia } from "@/lib/models";
 
@@ -49,8 +50,10 @@ export function DialogoCambiarEstado({ incidenciaId, nuevoEstado, usuarioId, tri
       const resultado = await cambiarEstadoIncidencia(incidenciaId, nuevoEstado, usuarioId, comentario);
       if (esResultadoSinDatos(resultado)) {
         setError(resultado.detalle);
+        toast.error("No se pudo actualizar la incidencia", resultado.detalle);
         return;
       }
+      toast.success(`Incidencia marcada como "${ESTADO_INCIDENCIA_LABELS[nuevoEstado]}"`);
       setOpen(false);
       setComentario("");
       await onConfirmado();

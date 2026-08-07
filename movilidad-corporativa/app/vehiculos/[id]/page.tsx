@@ -19,6 +19,7 @@ import {
   type DetalleVehiculo,
 } from "@/lib/adapters/vehiculos";
 import { esResultadoSinDatos } from "@/lib/services/types";
+import { toast } from "@/lib/toast";
 import { MEDIO_LABELS } from "@/lib/ui/estado-solicitud";
 import { FormularioVehiculo, type DatosVehiculoBorrador } from "../_components/formulario-vehiculo";
 import type { DatosVehiculoValidados } from "../_lib/schema";
@@ -146,12 +147,16 @@ export default function DetalleVehiculoPage() {
       );
       if (esResultadoSinDatos(resultado)) {
         setErrorEdicion(resultado.detalle);
+        toast.error("No se pudo guardar", resultado.detalle);
         return;
       }
+      toast.success("Cambios guardados");
       setModoEdicion(false);
       await cargar();
     } catch (error) {
-      setErrorEdicion(error instanceof Error ? error.message : "Ocurrió un error inesperado al guardar los cambios.");
+      const mensaje = error instanceof Error ? error.message : "Ocurrió un error inesperado al guardar los cambios.";
+      setErrorEdicion(mensaje);
+      toast.error("No se pudo guardar", mensaje);
     } finally {
       setEnviandoEdicion(false);
     }

@@ -17,6 +17,7 @@ import { obtenerContextoCheckIn, registrarCheckIn, type ContextoCheckIn } from "
 import { validarDatosCheckIn } from "@/lib/services/servicio-checkin";
 import { CHECKIN_CONFIG } from "@/lib/config/checkin";
 import { esResultadoSinDatos } from "@/lib/services/types";
+import { toast } from "@/lib/toast";
 import { FotosUploader } from "@/components/fotos-uploader";
 import { BadgeIntegracionSimulada } from "@/components/badge-integracion-simulada";
 import { proveedorFirmaElectronica } from "@/lib/integraciones/firma-electronica";
@@ -123,12 +124,16 @@ function CheckInContent() {
 
       if (esResultadoSinDatos(resultado)) {
         setErrorEnvio(resultado.detalle);
+        toast.error("No se pudo registrar el check-in", resultado.detalle);
         return;
       }
 
+      toast.success("Check-in confirmado");
       setEstado("exito");
     } catch (error) {
-      setErrorEnvio(error instanceof Error ? error.message : "Ocurrió un error inesperado al registrar el check-in.");
+      const mensaje = error instanceof Error ? error.message : "Ocurrió un error inesperado al registrar el check-in.";
+      setErrorEnvio(mensaje);
+      toast.error("No se pudo registrar el check-in", mensaje);
     } finally {
       setEnviando(false);
     }

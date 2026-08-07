@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { actualizarNombreTerritorio, crearTerritorio, type TerritorioConConteos } from "@/lib/adapters/administracion";
 import { esResultadoSinDatos } from "@/lib/services/types";
+import { toast } from "@/lib/toast";
 
 function FilaTerritorio({ territorio, usuarioId, onCambio }: { territorio: TerritorioConConteos; usuarioId: string; onCambio: () => void }) {
   const [editando, setEditando] = useState(false);
@@ -20,8 +21,10 @@ function FilaTerritorio({ territorio, usuarioId, onCambio }: { territorio: Terri
     setGuardando(false);
     if (esResultadoSinDatos(resultado)) {
       setError(resultado.detalle);
+      toast.error("No se pudo renombrar el territorio", resultado.detalle);
       return;
     }
+    toast.success("Territorio renombrado");
     setEditando(false);
     onCambio();
   }
@@ -72,8 +75,10 @@ function FormularioNuevoTerritorio({ usuarioId, onCreado }: { usuarioId: string;
     setEnviando(false);
     if (esResultadoSinDatos(resultado)) {
       setError(resultado.detalle);
+      toast.error("No se pudo crear el territorio", resultado.detalle);
       return;
     }
+    toast.success("Territorio creado", nombre);
     setNombre("");
     onCreado();
   }

@@ -26,6 +26,7 @@ import {
 import { FotosUploader } from "@/components/fotos-uploader";
 import { crearIncidenciaManual } from "@/lib/adapters/incidencias";
 import { esResultadoSinDatos } from "@/lib/services/types";
+import { toast } from "@/lib/toast";
 import { NIVELES_PRIORIDAD, SEVERIDAD_LABELS, TIPO_INCIDENCIA_LABELS, TIPOS_INCIDENCIA } from "@/lib/ui/incidencias";
 import { validarIncidencia, type ErroresIncidencia } from "../_lib/schema";
 
@@ -95,8 +96,10 @@ export function DialogoNuevaIncidencia({ vehiculos, responsables, usuarioActivoI
       );
       if (esResultadoSinDatos(creada)) {
         setError(creada.detalle);
+        toast.error("No se pudo registrar la incidencia", creada.detalle);
         return;
       }
+      toast.success("Incidencia registrada");
       setOpen(false);
       limpiar();
       await onCreada();

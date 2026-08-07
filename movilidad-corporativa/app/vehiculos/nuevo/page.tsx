@@ -11,6 +11,7 @@ import { db } from "@/lib/repositories/dexie";
 import { useSessionStore } from "@/lib/stores/session";
 import { crearVehiculo } from "@/lib/adapters/vehiculos";
 import { esResultadoSinDatos } from "@/lib/services/types";
+import { toast } from "@/lib/toast";
 import { FormularioVehiculo, datosVehiculoIniciales, type DatosVehiculoBorrador } from "../_components/formulario-vehiculo";
 import type { DatosVehiculoValidados } from "../_lib/schema";
 
@@ -61,13 +62,17 @@ export default function NuevoVehiculoPage() {
 
       if (esResultadoSinDatos(resultado)) {
         setErrorEnvio(resultado.detalle);
+        toast.error("No se pudo crear el vehículo", resultado.detalle);
         return;
       }
 
+      toast.success("Vehículo creado", resultado.placa);
       setFolioCreado(resultado.placa);
       setTimeout(() => router.push(`/vehiculos/${resultado.id}`), 1200);
     } catch (error) {
-      setErrorEnvio(error instanceof Error ? error.message : "Ocurrió un error inesperado al crear el vehículo.");
+      const mensaje = error instanceof Error ? error.message : "Ocurrió un error inesperado al crear el vehículo.";
+      setErrorEnvio(mensaje);
+      toast.error("No se pudo crear el vehículo", mensaje);
     } finally {
       setEnviando(false);
     }

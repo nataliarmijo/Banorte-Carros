@@ -54,7 +54,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="rounded-full border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-100 lg:flex"
-              aria-label="Toggle sidebar"
+              aria-label={sidebarOpen ? "Contraer menú lateral" : "Expandir menú lateral"}
+              aria-expanded={sidebarOpen}
             >
               {sidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5 rotate-180" />}
             </button>
@@ -74,6 +75,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                   }`}
                   title={sidebarOpen ? "" : item.label}
+                  aria-label={sidebarOpen ? undefined : item.label}
                 >
                   <Icon className="h-4 w-4 flex-shrink-0" />
                   {sidebarOpen && <span>{item.label}</span>}
@@ -98,7 +100,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="absolute left-4 top-4 z-40 rounded-full border border-slate-200 p-2 text-slate-600 lg:hidden"
-            aria-label="Abrir menú"
+            aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
+            aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>

@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cambiarModalidad, type ModalidadFlotaVehiculo } from "@/lib/adapters/vehiculos";
 import { esResultadoSinDatos } from "@/lib/services/types";
+import { toast } from "@/lib/toast";
 import { MEDIO_LABELS } from "@/lib/ui/estado-solicitud";
 
 interface DialogoModalidadProps {
@@ -39,8 +40,10 @@ export function DialogoModalidad({ vehiculoId, placa, modalidadActual, usuarioId
       const resultado = await cambiarModalidad(vehiculoId, modalidadNueva, usuarioId);
       if (esResultadoSinDatos(resultado)) {
         setError(resultado.detalle);
+        toast.error("No se pudo cambiar la modalidad", resultado.detalle);
         return;
       }
+      toast.success(`${placa} ahora es ${MEDIO_LABELS[modalidadNueva]}`);
       setOpen(false);
       await onConfirmado();
     } finally {

@@ -26,6 +26,7 @@ import {
   type UsuarioConTerritorio,
 } from "@/lib/adapters/administracion";
 import { esResultadoSinDatos } from "@/lib/services/types";
+import { toast } from "@/lib/toast";
 
 const ROL_LABELS: Record<RolNombre, string> = {
   COLABORADOR: "Colaborador",
@@ -60,8 +61,10 @@ function DialogoNuevoUsuario({ usuarioId, onCreado }: { usuarioId: string; onCre
     setEnviando(false);
     if (esResultadoSinDatos(resultado)) {
       setError(resultado.detalle);
+      toast.error("No se pudo crear el usuario", resultado.detalle);
       return;
     }
+    toast.success("Usuario creado", datos.nombreCompleto);
     setDatos(DATOS_INICIALES);
     setOpen(false);
     onCreado();
@@ -163,8 +166,10 @@ function DialogoEditarUsuario({ item, usuarioId, onGuardado }: { item: UsuarioCo
     setEnviando(false);
     if (esResultadoSinDatos(resultado)) {
       setError(resultado.detalle);
+      toast.error("No se pudo guardar el usuario", resultado.detalle);
       return;
     }
+    toast.success("Usuario actualizado");
     setOpen(false);
     onGuardado();
   }
@@ -257,7 +262,12 @@ export function TabUsuarios({ usuarios, usuarioActivoId, onCambio }: TabUsuarios
                     value={item.usuario.rol}
                     onValueChange={async (v) => {
                       if (!v || v === item.usuario.rol) return;
-                      await cambiarRolUsuario(item.usuario.id, v as RolNombre, usuarioActivoId);
+                      const resultado = await cambiarRolUsuario(item.usuario.id, v as RolNombre, usuarioActivoId);
+                      if (esResultadoSinDatos(resultado)) {
+                        toast.error("No se pudo cambiar el rol", resultado.detalle);
+                        return;
+                      }
+                      toast.success(`${item.usuario.nombreCompleto} ahora es ${ROL_ITEMS[v]}`);
                       onCambio();
                     }}
                     items={ROL_ITEMS}
@@ -279,7 +289,12 @@ export function TabUsuarios({ usuarios, usuarioActivoId, onCambio }: TabUsuarios
                     value={item.usuario.territorioId}
                     onValueChange={async (v) => {
                       if (!v || v === item.usuario.territorioId) return;
-                      await cambiarTerritorioUsuario(item.usuario.id, v, usuarioActivoId);
+                      const resultado = await cambiarTerritorioUsuario(item.usuario.id, v, usuarioActivoId);
+                      if (esResultadoSinDatos(resultado)) {
+                        toast.error("No se pudo cambiar el territorio", resultado.detalle);
+                        return;
+                      }
+                      toast.success(`${item.usuario.nombreCompleto} se movió a ${TERRITORIO_ITEMS[v]}`);
                       onCambio();
                     }}
                     items={TERRITORIO_ITEMS}
