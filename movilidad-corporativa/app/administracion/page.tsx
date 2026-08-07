@@ -1,68 +1,142 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
+import { ErrorState, LoadingState } from "@/components/states";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { db } from "@/lib/repositories/dexie";
 import { initializeDemoData, resetDemoData } from "@/lib/seed/init";
+import { useSessionStore } from "@/lib/stores/session";
+import {
+  listarAuditoriaReciente,
+  listarTerritoriosConConteos,
+  listarUsuarios,
+  type TerritorioConConteos,
+  type UsuarioConTerritorio,
+} from "@/lib/adapters/administracion";
+import type { RegistroAuditoria } from "@/lib/models";
+import { TabUsuarios } from "./_components/tab-usuarios";
+import { TabTerritorios } from "./_components/tab-territorios";
+import { TabParametros } from "./_components/tab-parametros";
+import { TabDatosDemo } from "./_components/tab-datos-demo";
+import { AuditoriaReciente } from "./_components/auditoria-reciente";
+
+interface DatosAdministracion {
+  usuarios: UsuarioConTerritorio[];
+  territorios: TerritorioConConteos[];
+  auditoria: RegistroAuditoria[];
+  counts: Record<string, number>;
+}
+
+async function cargarDatos(): Promise<DatosAdministracion> {
+  const [usuarios, territorios, auditoria, usuariosCount, territoriosCount, vehiculosCount, solicitudesCount, reservacionesCount, incidenciasCount, parametrosCount, auditoriaCount] =
+    await Promise.all([
+      listarUsuarios(),
+      listarTerritoriosConConteos(),
+      listarAuditoriaReciente(20),
+      db.usuarios.count(),
+      db.territorios.count(),
+      db.vehiculos.count(),
+      db.solicitudes.count(),
+      db.reservaciones.count(),
+      db.incidencias.count(),
+      db.parametrosOperativos.count(),
+      db.registrosAuditoria.count(),
+    ]);
+
+  return {
+    usuarios,
+    territorios,
+    auditoria,
+    counts: {
+      usuarios: usuariosCount,
+      territorios: territoriosCount,
+      vehiculos: vehiculosCount,
+      solicitudes: solicitudesCount,
+      reservaciones: reservacionesCount,
+      incidencias: incidenciasCount,
+      parametrosOperativos: parametrosCount,
+      registrosAuditoria: auditoriaCount,
+    },
+  };
+}
 
 export default function AdministracionPage() {
-  const [counts, setCounts] = useState<Record<string, number>>({});
-  const [message, setMessage] = useState("Cargando datos de demostración...");
+  const { rolActivo, usuarioActivo } = useSessionStore();
+  const esAdminFlota = rolActivo === "ADMIN_FLOTA";
+  const [estado, setEstado] = useState<"cargando" | "listo" | "error">("cargando");
+  const [datos, setDatos] = useState<DatosAdministracion | null>(null);
+  const [mensajeError, setMensajeError] = useState("");
 
-  const loadCounts = async () => {
-    const nextCounts = {
-      usuarios: await db.usuarios.count(),
-      territorios: await db.territorios.count(),
-      vehiculos: await db.vehiculos.count(),
-      solicitudes: await db.solicitudes.count(),
-      reservaciones: await db.reservaciones.count(),
-      incidencias: await db.incidencias.count(),
-      registrosAuditoria: await db.registrosAuditoria.count(),
-    };
-    setCounts(nextCounts);
-  };
-
-  useEffect(() => {
-    initializeDemoData().then(() => {
-      setMessage("Datos de demostración cargados correctamente.");
-      loadCounts();
-    });
+  const cargar = useCallback(async () => {
+    setEstado("cargando");
+    try {
+      const data = await cargarDatos();
+      setDatos(data);
+      setEstado("listo");
+    } catch (error) {
+      setMensajeError(error instanceof Error ? error.message : "Ocurrió un error inesperado al cargar la administración.");
+      setEstado("error");
+    }
   }, []);
 
-  const handleReset = async () => {
-    setMessage("Reinicializando datos...");
+  useEffect(() => {
+    initializeDemoData().then(cargar);
+  }, [cargar]);
+
+  async function manejarReset() {
     await resetDemoData();
-    await loadCounts();
-    setMessage("Datos reinicializados correctamente.");
-  };
+    await cargar();
+  }
 
   return (
     <AppShell>
       <div className="space-y-6">
         <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">Administración</p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Verificación de datos persistidos</h2>
-            </div>
-            <button
-              onClick={handleReset}
-              className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700"
-            >
-              Reiniciar demo
-            </button>
-          </div>
-          <p className="mt-3 text-sm text-slate-600">{message}</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">Administración</p>
+          <h2 className="mt-2 text-2xl font-semibold text-slate-900">Punto único de verdad de la plataforma</h2>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+            Usuarios de prueba, territorios y todos los parámetros de negocio (horario laboral, costos, emisiones, pesos de asignación, metas).
+            Cada cambio se aplica de inmediato en toda la app y queda en la auditoría.
+          </p>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {Object.entries(counts).map(([key, value]) => (
-            <div key={key} className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-              <p className="text-sm capitalize text-slate-500">{key.replace(/([A-Z])/g, " $1")}</p>
-              <p className="mt-2 text-3xl font-semibold text-slate-900">{value}</p>
-            </div>
-          ))}
-        </section>
+        {estado === "cargando" && <LoadingState message="Cargando administración..." />}
+        {estado === "error" && <ErrorState description={mensajeError} />}
+
+        {estado === "listo" && datos && usuarioActivo && (
+          <Tabs defaultValue={esAdminFlota ? "usuarios" : "parametros"}>
+            <TabsList>
+              {esAdminFlota && <TabsTrigger value="usuarios">Usuarios</TabsTrigger>}
+              {esAdminFlota && <TabsTrigger value="territorios">Territorios</TabsTrigger>}
+              <TabsTrigger value="parametros">Parámetros</TabsTrigger>
+              {esAdminFlota && <TabsTrigger value="datos-demo">Datos demo</TabsTrigger>}
+            </TabsList>
+
+            {esAdminFlota && (
+              <TabsContent value="usuarios" className="mt-6">
+                <TabUsuarios usuarios={datos.usuarios} usuarioActivoId={usuarioActivo.id} onCambio={cargar} />
+              </TabsContent>
+            )}
+
+            {esAdminFlota && (
+              <TabsContent value="territorios" className="mt-6">
+                <TabTerritorios territorios={datos.territorios} usuarioId={usuarioActivo.id} onCambio={cargar} />
+              </TabsContent>
+            )}
+
+            <TabsContent value="parametros" className="mt-6 space-y-6">
+              <TabParametros soloLectura={!esAdminFlota} usuarioId={usuarioActivo.id} onGuardado={cargar} />
+              <AuditoriaReciente registros={datos.auditoria} />
+            </TabsContent>
+
+            {esAdminFlota && (
+              <TabsContent value="datos-demo" className="mt-6">
+                <TabDatosDemo counts={datos.counts} onReset={manejarReset} />
+              </TabsContent>
+            )}
+          </Tabs>
+        )}
       </div>
     </AppShell>
   );

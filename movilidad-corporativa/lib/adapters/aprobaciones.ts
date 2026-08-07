@@ -23,8 +23,6 @@ import type { Alternativa, ResultadoComparacion, ResultadoSinDatos, TipoVehiculo
 import type { SolicitudAsignacion } from "@/lib/services/servicioAsignacion";
 
 /** A partir de cuántas horas antes de la salida una solicitud se marca como urgente. */
-const UMBRAL_URGENCIA_HORAS = 48;
-
 const TIPOS_VEHICULO_VALIDOS: readonly TipoVehiculo[] = ["sedan-compacto", "sedan-ejecutivo", "suv-asignado"];
 
 function esTipoVehiculoValido(valor: string | undefined): valor is TipoVehiculo {
@@ -134,7 +132,7 @@ export async function listarSolicitudesPendientes(territorioId: string): Promise
         motivoSinDatos,
         medioRecomendado,
         ahorroEstimado,
-        esUrgente: horasHastaSalida <= UMBRAL_URGENCIA_HORAS,
+        esUrgente: horasHastaSalida <= PARAMS_CONFIG.umbralUrgenciaAprobacionHoras,
         horasHastaSalida,
       };
     })

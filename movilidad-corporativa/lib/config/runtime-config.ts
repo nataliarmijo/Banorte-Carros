@@ -26,6 +26,7 @@ import { COSTOS_CONFIG, type ConfigVehiculo, type TipoCombustible } from "./cost
 import { EMISIONES_CONFIG, type FactorEmision as ConfigFactorEmision } from "./emisiones";
 import { ASIGNACION_CONFIG } from "./asignacion";
 import { ANALITICA_CONFIG } from "./analitica";
+import { CHECKIN_CONFIG } from "./checkin";
 import { CHECKOUT_CONFIG } from "./checkout";
 import { metasGerenciales, type MetaGerencialConfig } from "./metas";
 import type { TipoVehiculo } from "@/lib/services/types";
@@ -152,6 +153,13 @@ export interface ValorCheckoutConfig {
   consumoEsperadoPorcentajePor100Km: number;
 }
 
+export interface ValorCheckinConfig {
+  ventanaPreviaHoras: number;
+  kilometrajeExcedenteRazonableKm: number;
+  combustible: { minimoPorcentaje: number; maximoPorcentaje: number };
+  fotosMinimas: number;
+}
+
 export interface ValorParametrosGenerales {
   porcentajeTolerancia: number;
   margenUberRecomendacion: number;
@@ -159,6 +167,8 @@ export interface ValorParametrosGenerales {
   estacionamiento: { costoPorMinuto: number; minutosEstimadosPorDefecto: number };
   entregaRecepcion: { minutosEstimados: number };
   duracionEstimadaMinutosPorDefecto: number;
+  umbralUrgenciaAprobacionHoras: number;
+  saturacionFlotilla: { umbralAltoPorcentaje: number; umbralModeradoPorcentaje: number };
 }
 
 export type ValorTerritorios = Record<string, { nombre: string; latitud: number; longitud: number }>;
@@ -173,6 +183,7 @@ export type ClaveSeccionConfig =
   | "escenarioBaseAhorros"
   | "metasGerenciales"
   | "analiticaMetas"
+  | "checkinConfig"
   | "checkoutConfig"
   | "parametrosGenerales"
   | "territorios";
@@ -318,6 +329,14 @@ const SECCIONES: DefinicionSeccion[] = [
     aplicar: aplicarObjeto(ANALITICA_CONFIG),
   },
   {
+    clave: "checkinConfig",
+    titulo: "Reglas de check-in",
+    descripcion: "Ventana previa habilitada, kilometraje excedente razonable y fotografías mínimas, usados por el check-in digital (Chunk 9).",
+    soloLecturaParaEjecutivo: true,
+    obtenerActual: () => CHECKIN_CONFIG,
+    aplicar: aplicarObjeto(CHECKIN_CONFIG),
+  },
+  {
     clave: "checkoutConfig",
     titulo: "Reglas de check-out",
     descripcion: "Fotografías mínimas y consumo esperado de combustible, usados por el check-out digital (Chunk 10).",
@@ -337,15 +356,19 @@ const SECCIONES: DefinicionSeccion[] = [
       estacionamiento: PARAMS_CONFIG.estacionamiento,
       entregaRecepcion: PARAMS_CONFIG.entregaRecepcion,
       duracionEstimadaMinutosPorDefecto: PARAMS_CONFIG.duracionEstimadaMinutosPorDefecto,
+      umbralUrgenciaAprobacionHoras: PARAMS_CONFIG.umbralUrgenciaAprobacionHoras,
+      saturacionFlotilla: PARAMS_CONFIG.saturacionFlotilla,
     }),
     aplicar: (valor) => {
       const v = valor as ValorParametrosGenerales;
       (PARAMS_CONFIG as unknown as Record<string, unknown>).porcentajeTolerancia = v.porcentajeTolerancia;
       (PARAMS_CONFIG as unknown as Record<string, unknown>).margenUberRecomendacion = v.margenUberRecomendacion;
       (PARAMS_CONFIG as unknown as Record<string, unknown>).duracionEstimadaMinutosPorDefecto = v.duracionEstimadaMinutosPorDefecto;
+      (PARAMS_CONFIG as unknown as Record<string, unknown>).umbralUrgenciaAprobacionHoras = v.umbralUrgenciaAprobacionHoras;
       mutarEnSitio(PARAMS_CONFIG.casetas, v.casetas);
       mutarEnSitio(PARAMS_CONFIG.estacionamiento, v.estacionamiento);
       mutarEnSitio(PARAMS_CONFIG.entregaRecepcion, v.entregaRecepcion);
+      mutarEnSitio(PARAMS_CONFIG.saturacionFlotilla, v.saturacionFlotilla);
     },
   },
   {

@@ -25,7 +25,7 @@ const navigationItems: NavigationItem[] = [
   { label: "Mapa", href: "/mapa", icon: MapPinned, roles: ["COLABORADOR", "APROBADOR", "ADMIN_FLOTA", "EJECUTIVO"] },
   { label: "Incidencias", href: "/incidencias", icon: AlertTriangle, roles: ["ADMIN_FLOTA"] },
   { label: "Analítica", href: "/analitica", icon: ChartColumn, roles: ["EJECUTIVO", "ADMIN_FLOTA"] },
-  { label: "Administración", href: "/administracion", icon: Settings, roles: ["ADMIN_FLOTA"] },
+  { label: "Administración", href: "/administracion", icon: Settings, roles: ["ADMIN_FLOTA", "EJECUTIVO"] },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {

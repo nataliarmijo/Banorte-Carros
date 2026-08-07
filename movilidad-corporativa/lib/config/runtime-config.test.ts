@@ -11,6 +11,7 @@ import { db } from "@/lib/repositories/dexie";
 import { PARAMS_CONFIG } from "@/lib/config/params";
 import { COSTOS_CONFIG } from "@/lib/config/costos";
 import { ASIGNACION_CONFIG } from "@/lib/config/asignacion";
+import { CHECKIN_CONFIG } from "@/lib/config/checkin";
 import { calcularCostoUber } from "@/lib/services/servicio-costos";
 import { esResultadoSinDatos } from "@/lib/services/types";
 import {
@@ -147,6 +148,17 @@ describe("guardarSeccionConfiguracion", () => {
     await guardarSeccionConfiguracion("limitesCostoEspecial", valorActual, ADMIN_ID);
     const auditorias = await db.registrosAuditoria.where("entidadId").equals("limitesCostoEspecial").toArray();
     expect(auditorias.length).toBe(0);
+  });
+
+  it("muta en vivo las reglas de check-in (Chunk 9), encontradas fuera del formulario original de /administracion", async () => {
+    const antes = CHECKIN_CONFIG.ventanaPreviaHoras;
+    const resultado = await guardarSeccionConfiguracion(
+      "checkinConfig",
+      { ...CHECKIN_CONFIG, ventanaPreviaHoras: antes + 6 },
+      ADMIN_ID
+    );
+    expect(esResultadoSinDatos(resultado)).toBe(false);
+    expect(CHECKIN_CONFIG.ventanaPreviaHoras).toBe(antes + 6);
   });
 
   it("permite agregar un nuevo territorio y queda disponible para las demás vistas", async () => {

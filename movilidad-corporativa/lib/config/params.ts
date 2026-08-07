@@ -37,6 +37,17 @@ export const PARAMS_CONFIG = {
   // Margen mínimo para recomendar Uber
   margenUberRecomendacion: 0.1, // 10% más barato
 
+  // Horas antes de la salida deseada a partir de las cuales una solicitud
+  // pendiente se marca "urgente" en el panel de Aprobaciones (Chunk 6).
+  umbralUrgenciaAprobacionHoras: 48,
+
+  // Umbrales de ocupación de flotilla (% de vehículos NO disponibles) para
+  // la etiqueta de saturación mostrada en el wizard de solicitud (Chunk 4).
+  saturacionFlotilla: {
+    umbralAltoPorcentaje: 70, // "Flotilla saturada"
+    umbralModeradoPorcentaje: 30, // "Demanda moderada"; por debajo: "Disponibilidad amplia"
+  },
+
   // Datos de territorios (distancia estimada, etc.)
   territorios: {
     "territorio-cdmx": { nombre: "CDMX", latitud: 19.4326, longitud: -99.1332 },

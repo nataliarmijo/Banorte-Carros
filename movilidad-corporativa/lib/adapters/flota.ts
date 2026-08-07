@@ -9,6 +9,7 @@ import { db } from "@/lib/repositories/dexie";
 import type { ModalidadVehiculo, Vehiculo } from "@/lib/models";
 import type { TipoCombustible } from "@/lib/config/costos";
 import { ASIGNACION_CONFIG } from "@/lib/config/asignacion";
+import { PARAMS_CONFIG } from "@/lib/config/params";
 import {
   estaDisponibleParaPeriodo,
   recomendarVehiculo,
@@ -203,8 +204,13 @@ export function calcularSaturacionFlotilla(vehiculosDisponibles: VehiculoDisponi
 
   const disponibles = vehiculosDisponibles.filter((v) => v.disponible).length;
   const ocupacionPorcentaje = Math.round(((total - disponibles) / total) * 100);
+  const { umbralAltoPorcentaje, umbralModeradoPorcentaje } = PARAMS_CONFIG.saturacionFlotilla;
   const etiqueta =
-    ocupacionPorcentaje >= 70 ? "Flotilla saturada" : ocupacionPorcentaje >= 30 ? "Demanda moderada" : "Disponibilidad amplia";
+    ocupacionPorcentaje >= umbralAltoPorcentaje
+      ? "Flotilla saturada"
+      : ocupacionPorcentaje >= umbralModeradoPorcentaje
+        ? "Demanda moderada"
+        : "Disponibilidad amplia";
 
   return { ocupacionPorcentaje, etiqueta, disponibles, total };
 }
