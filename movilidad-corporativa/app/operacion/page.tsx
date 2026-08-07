@@ -4,11 +4,21 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { ErrorState, LoadingState } from "@/components/states";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { initializeDemoData } from "@/lib/seed/init";
 import { useSessionStore } from "@/lib/stores/session";
-import { fechaLocalISO, marcarCoordinacion, obtenerPanelOperativo, extraerTiposVehiculo, type PanelOperativo } from "@/lib/adapters/operacion";
+import {
+  fechaLocalISO,
+  marcarCoordinacion,
+  obtenerPanelOperativo,
+  obtenerResumenOperativo,
+  extraerTiposVehiculo,
+  type PanelOperativo,
+  type ResumenOperativo,
+} from "@/lib/adapters/operacion";
 import { FiltrosBar } from "./_components/filtros-bar";
 import { Indicadores } from "./_components/indicadores";
+import { PanelResumen } from "./_components/panel-resumen";
 import { PendientesDelDia } from "./_components/pendientes-del-dia";
 import { PanelIncidencias } from "./_components/panel-incidencias";
 import { PanelVehiculos } from "./_components/panel-vehiculos";
@@ -21,14 +31,16 @@ export default function OperacionPage() {
   const [filtros, setFiltros] = useState<FiltrosOperacion>(FILTROS_INICIALES);
   const [estado, setEstado] = useState<"cargando" | "listo" | "error">("cargando");
   const [panel, setPanel] = useState<PanelOperativo | null>(null);
+  const [resumen, setResumen] = useState<ResumenOperativo | null>(null);
   const [mensajeError, setMensajeError] = useState("");
   const [procesandoId, setProcesandoId] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
     setEstado("cargando");
     try {
-      const data = await obtenerPanelOperativo(fecha);
-      setPanel(data);
+      const [datosPanel, datosResumen] = await Promise.all([obtenerPanelOperativo(fecha), obtenerResumenOperativo()]);
+      setPanel(datosPanel);
+      setResumen(datosResumen);
       setEstado("listo");
     } catch (error) {
       setMensajeError(error instanceof Error ? error.message : "Ocurrió un error inesperado al cargar el panel operativo.");
@@ -99,34 +111,45 @@ export default function OperacionPage() {
         {estado === "cargando" && <LoadingState message="Cargando panel operativo..." />}
         {estado === "error" && <ErrorState description={mensajeError} />}
 
-        {estado === "listo" && panel && (
-          <>
-            <Indicadores {...indicadores} />
+        {estado === "listo" && panel && resumen && (
+          <Tabs defaultValue="resumen">
+            <TabsList>
+              <TabsTrigger value="resumen">Resumen</TabsTrigger>
+              <TabsTrigger value="detalle">Detalle del día</TabsTrigger>
+            </TabsList>
 
-            <FiltrosBar
-              fecha={fecha}
-              onFechaChange={setFecha}
-              filtros={filtros}
-              onFiltrosChange={(patch) => setFiltros((f) => ({ ...f, ...patch }))}
-              tiposVehiculo={tiposVehiculo}
-              responsables={responsables}
-            />
+            <TabsContent value="resumen" className="mt-6">
+              <PanelResumen resumen={resumen} />
+            </TabsContent>
 
-            <PendientesDelDia
-              entregas={entregasPendientes}
-              devoluciones={devolucionesPendientes}
-              usuarioActivoId={usuarioActivo?.id ?? ""}
-              procesandoId={procesandoId}
-              onMarcarCoordinada={manejarCoordinacion}
-              onReasignado={cargar}
-            />
+            <TabsContent value="detalle" className="mt-6 space-y-6">
+              <Indicadores {...indicadores} />
 
-            <PanelIncidencias incidencias={incidenciasFiltradas} />
+              <FiltrosBar
+                fecha={fecha}
+                onFechaChange={setFecha}
+                filtros={filtros}
+                onFiltrosChange={(patch) => setFiltros((f) => ({ ...f, ...patch }))}
+                tiposVehiculo={tiposVehiculo}
+                responsables={responsables}
+              />
 
-            <PanelVehiculos vehiculos={vehiculosFiltrados} />
+              <PendientesDelDia
+                entregas={entregasPendientes}
+                devoluciones={devolucionesPendientes}
+                usuarioActivoId={usuarioActivo?.id ?? ""}
+                procesandoId={procesandoId}
+                onMarcarCoordinada={manejarCoordinacion}
+                onReasignado={cargar}
+              />
 
-            <TablaOperativa filas={filasFiltradas} usuarioActivoId={usuarioActivo?.id ?? ""} onReasignado={cargar} />
-          </>
+              <PanelIncidencias incidencias={incidenciasFiltradas} />
+
+              <PanelVehiculos vehiculos={vehiculosFiltrados} />
+
+              <TablaOperativa filas={filasFiltradas} usuarioActivoId={usuarioActivo?.id ?? ""} onReasignado={cargar} />
+            </TabsContent>
+          </Tabs>
         )}
       </div>
     </AppShell>

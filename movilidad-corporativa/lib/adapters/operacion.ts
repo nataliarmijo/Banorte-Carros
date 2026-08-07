@@ -12,11 +12,13 @@ import { db } from "@/lib/repositories/dexie";
 import { registrosAuditoriaRepository, vehiculosRepository } from "@/lib/repositories/typed-repositories";
 import type { Incidencia, Mantenimiento, ModalidadVehiculo, Reservacion, Solicitud, Vehiculo } from "@/lib/models";
 import { PARAMS_CONFIG } from "@/lib/config/params";
+import { ASIGNACION_CONFIG } from "@/lib/config/asignacion";
 import {
   reasignarManualmente,
   estaDisponibleParaPeriodo,
   type ResultadoReasignacion,
 } from "@/lib/services/servicioAsignacion";
+import { estaFueraDeHorarioLaboral } from "@/lib/services/servicio-checkout";
 import { construirCandidatosFlota, type CandidatoFlota } from "@/lib/adapters/flota";
 import { esResultadoSinDatos } from "@/lib/services/types";
 import type { ResultadoSinDatos } from "@/lib/services/types";
@@ -282,3 +284,256 @@ export function extraerTiposVehiculo(vehiculos: VehiculoOperativo[]): string[] {
 }
 
 export const MODALIDADES_FLOTA: ModalidadVehiculo[] = ["POOL", "ASIGNADO"];
+
+// ---------------------------------------------------------------------------
+// Resumen operativo: pestaña "Resumen" de /operacion (Admin Flota). A
+// diferencia del panel del día (arriba), no depende de una fecha filtrada:
+// es una fotografía en vivo del estado operativo actual. Reutiliza
+// `obtenerPanelOperativo` (retrasos/vehículos/incidencias ya calculados) en
+// vez de recalcular esa lógica.
+// ---------------------------------------------------------------------------
+
+export interface DisponibilidadCelda {
+  territorioId: string;
+  territorioNombre: string;
+  modalidad: "POOL" | "ASIGNADO";
+  total: number;
+  disponibles: number;
+}
+
+export interface SaturacionTerritorio {
+  territorioId: string;
+  territorioNombre: string;
+  /** Solicitudes pendientes de aprobación o aprobadas que todavía no tienen vehículo asignado. */
+  solicitudesEnEspera: number;
+  vehiculosPoolDisponibles: number;
+  saturado: boolean;
+}
+
+export interface ReservacionProxima {
+  reservacion: Reservacion;
+  folio: string;
+  solicitanteNombre: string;
+  territorioNombre: string;
+  vehiculoNombre: string;
+  minutosParaInicio: number;
+}
+
+export interface MantenimientoProximo {
+  mantenimiento: Mantenimiento;
+  vehiculo: Vehiculo | null;
+  territorioNombre: string;
+  diasRestantes: number;
+}
+
+export interface SolicitudSinAsignar {
+  solicitud: Solicitud;
+  solicitanteNombre: string;
+  territorioNombre: string;
+  horasEnEspera: number;
+}
+
+export interface TiemposPromedio {
+  /** Solicitud creada -> decisión de aprobación (solo solicitudes aprobadas). */
+  aprobacionMinutos: number | null;
+  /** Vehículo asignado (reservación creada) -> check-in realizado. */
+  entregaMinutos: number | null;
+  /** Regreso planeado (fin de la reservación) -> check-out realizado; negativo si se devolvió antes de lo planeado. */
+  recepcionMinutos: number | null;
+}
+
+export interface AlertasCriticas {
+  incidenciasCriticas: IncidenciaOperativa[];
+  vehiculosFueraDeHorarioAhora: VehiculoOperativo[];
+  esFueraDeHorarioAhora: boolean;
+}
+
+export interface ResumenOperativo {
+  generadoEn: string;
+  disponibilidad: DisponibilidadCelda[];
+  saturacion: SaturacionTerritorio[];
+  reservacionesProximas24h: ReservacionProxima[];
+  devolucionesRetrasadas: FilaOperativa[];
+  mantenimientosProximos: MantenimientoProximo[];
+  solicitudesSinAsignar: SolicitudSinAsignar[];
+  tiempos: TiemposPromedio;
+  alertas: AlertasCriticas;
+  /** Umbral por defecto (días) usado para resaltar mantenimientos próximos; la UI permite ajustarlo. */
+  umbralMantenimientoDiasPorDefecto: number;
+}
+
+const ESTADOS_EN_ESPERA_DE_VEHICULO: Solicitud["estadoSolicitud"][] = ["PENDIENTE_APROBACION", "APROBADA"];
+const ESTADOS_RESERVACION_PENDIENTE_DE_INICIO: Reservacion["estadoReservacion"][] = ["ASIGNADA", "LISTA_CHECK_IN"];
+
+function promedioMinutos(pares: Array<{ desde: string; hasta: string }>): number | null {
+  if (pares.length === 0) return null;
+  const totalMinutos = pares.reduce((acc, p) => acc + (new Date(p.hasta).getTime() - new Date(p.desde).getTime()) / 60000, 0);
+  return Math.round(totalMinutos / pares.length);
+}
+
+/** Arma la fotografía operativa en vivo para la pestaña "Resumen" de /operacion. */
+export async function obtenerResumenOperativo(): Promise<ResumenOperativo> {
+  const ahora = new Date();
+  const panel = await obtenerPanelOperativo(fechaLocalISO(ahora));
+
+  const [vehiculosFlota, solicitudes, reservaciones, mantenimientos, aprobaciones, checkIns, checkOuts] = await Promise.all([
+    db.vehiculos.where("modalidad").anyOf(["POOL", "ASIGNADO"]).toArray(),
+    db.solicitudes.toArray(),
+    db.reservaciones.toArray(),
+    db.mantenimientos.toArray(),
+    db.aprobaciones.toArray(),
+    db.checkIns.toArray(),
+    db.checkOuts.toArray(),
+  ]);
+
+  const nombrePorUsuario = await construirNombresUsuarios(solicitudes);
+  const reservacionPorSolicitud = new Map(reservaciones.map((r) => [r.solicitudId, r]));
+  const vehiculoPorId = new Map(vehiculosFlota.map((v) => [v.id, v]));
+  const solicitudPorId = new Map(solicitudes.map((s) => [s.id, s]));
+  const folioPorSolicitudId = new Map(solicitudes.map((s) => [s.id, s.folio]));
+
+  // --- 1. Disponibilidad actual de la flotilla (territorio x modalidad) ---
+  const celdasPorClave = new Map<string, DisponibilidadCelda>();
+  for (const v of vehiculosFlota) {
+    const clave = `${v.territorioId}:${v.modalidad}`;
+    const celda = celdasPorClave.get(clave) ?? {
+      territorioId: v.territorioId,
+      territorioNombre: nombreTerritorio(v.territorioId),
+      modalidad: v.modalidad as "POOL" | "ASIGNADO",
+      total: 0,
+      disponibles: 0,
+    };
+    celda.total += 1;
+    if (v.disponibilidadActual && v.estadoOperativo === "DISPONIBLE") celda.disponibles += 1;
+    celdasPorClave.set(clave, celda);
+  }
+  const disponibilidad = Array.from(celdasPorClave.values()).sort(
+    (a, b) => a.territorioNombre.localeCompare(b.territorioNombre) || a.modalidad.localeCompare(b.modalidad)
+  );
+
+  // --- 2. Saturación territorial ---
+  const territorioIds = [...new Set(vehiculosFlota.map((v) => v.territorioId))];
+  const saturacion: SaturacionTerritorio[] = territorioIds
+    .map((territorioId) => {
+      const solicitudesEnEspera = solicitudes.filter(
+        (s) => s.territorioId === territorioId && ESTADOS_EN_ESPERA_DE_VEHICULO.includes(s.estadoSolicitud)
+      ).length;
+      const vehiculosPoolDisponibles = vehiculosFlota.filter(
+        (v) => v.territorioId === territorioId && v.modalidad === "POOL" && v.disponibilidadActual && v.estadoOperativo === "DISPONIBLE"
+      ).length;
+      return {
+        territorioId,
+        territorioNombre: nombreTerritorio(territorioId),
+        solicitudesEnEspera,
+        vehiculosPoolDisponibles,
+        saturado: solicitudesEnEspera > vehiculosPoolDisponibles,
+      };
+    })
+    .sort((a, b) => b.solicitudesEnEspera - b.vehiculosPoolDisponibles - (a.solicitudesEnEspera - a.vehiculosPoolDisponibles));
+
+  // --- 3. Reservaciones de las próximas 24 horas ---
+  const en24h = new Date(ahora.getTime() + 24 * 60 * 60 * 1000);
+  const reservacionesProximas24h: ReservacionProxima[] = reservaciones
+    .filter((r) => {
+      const inicioMs = new Date(r.fechaInicio).getTime();
+      return ESTADOS_RESERVACION_PENDIENTE_DE_INICIO.includes(r.estadoReservacion) && inicioMs >= ahora.getTime() && inicioMs <= en24h.getTime();
+    })
+    .map((r) => {
+      const solicitud = solicitudPorId.get(r.solicitudId) ?? null;
+      const vehiculo = vehiculoPorId.get(r.vehiculoId) ?? null;
+      return {
+        reservacion: r,
+        folio: folioPorSolicitudId.get(r.solicitudId) ?? "—",
+        solicitanteNombre: solicitud ? (nombrePorUsuario.get(solicitud.usuarioSolicitanteId) ?? "Usuario desconocido") : "Usuario desconocido",
+        territorioNombre: solicitud ? nombreTerritorio(solicitud.territorioId) : "—",
+        vehiculoNombre: vehiculo ? `${vehiculo.marca} ${vehiculo.modelo} (${vehiculo.placa})` : "Sin vehículo",
+        minutosParaInicio: Math.round((new Date(r.fechaInicio).getTime() - ahora.getTime()) / 60000),
+      };
+    })
+    .sort((a, b) => a.minutosParaInicio - b.minutosParaInicio);
+
+  // --- 4. Devoluciones retrasadas (checkout vencido): siempre en vivo, ya calculadas en el panel del día ---
+  const devolucionesRetrasadas = panel.retrasos;
+
+  // --- 5. Mantenimiento próximo ---
+  const mantenimientosProximos: MantenimientoProximo[] = mantenimientos
+    .filter((m) => !m.fechaRealizada && vehiculoPorId.has(m.vehiculoId))
+    .map((m) => {
+      const vehiculo = vehiculoPorId.get(m.vehiculoId) ?? null;
+      return {
+        mantenimiento: m,
+        vehiculo,
+        territorioNombre: vehiculo ? nombreTerritorio(vehiculo.territorioId) : "—",
+        diasRestantes: Math.ceil((new Date(m.fechaProgramada).getTime() - ahora.getTime()) / (24 * 60 * 60 * 1000)),
+      };
+    })
+    .sort((a, b) => a.diasRestantes - b.diasRestantes);
+
+  // --- 6. Solicitudes aprobadas sin vehículo asignado todavía ---
+  const aprobacionAprobadaPorSolicitud = new Map(aprobaciones.filter((a) => a.decision === "APROBADA").map((a) => [a.solicitudId, a]));
+  const solicitudesSinAsignar: SolicitudSinAsignar[] = solicitudes
+    .filter((s) => s.estadoSolicitud === "APROBADA" && !reservacionPorSolicitud.has(s.id))
+    .map((s) => {
+      const desde = aprobacionAprobadaPorSolicitud.get(s.id)?.fechaDecision ?? s.fechaCreacion;
+      return {
+        solicitud: s,
+        solicitanteNombre: nombrePorUsuario.get(s.usuarioSolicitanteId) ?? "Usuario desconocido",
+        territorioNombre: nombreTerritorio(s.territorioId),
+        horasEnEspera: Math.max(0, Math.round((ahora.getTime() - new Date(desde).getTime()) / (60 * 60 * 1000))),
+      };
+    })
+    .sort((a, b) => b.horasEnEspera - a.horasEnEspera);
+
+  // --- 7. Tiempos promedio: aprobación, entrega (check-in), recepción (check-out) ---
+  const checkInPorReservacion = new Map(checkIns.map((c) => [c.reservacionId, c]));
+  const checkOutPorReservacion = new Map(checkOuts.map((c) => [c.reservacionId, c]));
+
+  const paresAprobacion = aprobaciones
+    .filter((a) => a.decision === "APROBADA")
+    .map((a) => {
+      const solicitud = solicitudPorId.get(a.solicitudId);
+      return solicitud ? { desde: solicitud.fechaCreacion, hasta: a.fechaDecision } : null;
+    })
+    .filter((p): p is { desde: string; hasta: string } => p !== null);
+
+  const paresEntrega = reservaciones
+    .map((r) => {
+      const checkIn = checkInPorReservacion.get(r.id);
+      return checkIn ? { desde: r.fechaCreacion, hasta: checkIn.fechaHoraCheckIn } : null;
+    })
+    .filter((p): p is { desde: string; hasta: string } => p !== null);
+
+  const paresRecepcion = reservaciones
+    .map((r) => {
+      const checkOut = checkOutPorReservacion.get(r.id);
+      return checkOut ? { desde: r.fechaFin, hasta: checkOut.fechaHoraCheckOut } : null;
+    })
+    .filter((p): p is { desde: string; hasta: string } => p !== null);
+
+  const tiempos: TiemposPromedio = {
+    aprobacionMinutos: promedioMinutos(paresAprobacion),
+    entregaMinutos: promedioMinutos(paresEntrega),
+    recepcionMinutos: promedioMinutos(paresRecepcion),
+  };
+
+  // --- 8. Alertas críticas ---
+  const esFueraDeHorarioAhora = estaFueraDeHorarioLaboral(ahora);
+  const alertas: AlertasCriticas = {
+    incidenciasCriticas: panel.incidencias.filter((i) => i.incidencia.severidad === "CRITICA"),
+    vehiculosFueraDeHorarioAhora: esFueraDeHorarioAhora ? panel.vehiculos.filter((v) => v.folioReservacionActiva !== null) : [],
+    esFueraDeHorarioAhora,
+  };
+
+  return {
+    generadoEn: ahora.toISOString(),
+    disponibilidad,
+    saturacion,
+    reservacionesProximas24h,
+    devolucionesRetrasadas,
+    mantenimientosProximos,
+    solicitudesSinAsignar,
+    tiempos,
+    alertas,
+    umbralMantenimientoDiasPorDefecto: ASIGNACION_CONFIG.mantenimiento.diasUmbralRiesgo,
+  };
+}
