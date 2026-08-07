@@ -8,86 +8,48 @@ interface SessionStore {
   rolActivo: RolActivo;
   usuarioActivo: Usuario | null;
   territorioActivo: string;
-  setRolActivo: (rol: RolActivo) => void;
-  setUsuarioActivo: (usuario: Usuario | null) => void;
-  setTerritorioActivo: (territorio: string) => void;
+  /**
+   * Cambia la sesión de prueba al usuario seleccionado en el selector de rol
+   * (Chunk 3); su rol y territorio activos se derivan de ese usuario, que a
+   * su vez viene de la gestión de usuarios de /administracion (Chunk 17) —
+   * ya no hay una lista de usuarios de prueba separada y desincronizada.
+   */
+  setUsuarioActivo: (usuario: Usuario) => void;
   reset: () => void;
 }
 
-const usuariosDemo: Record<RolActivo, Usuario> = {
-  COLABORADOR: {
-    id: "user-1",
-    nombreCompleto: "Ana López",
-    correoCorporativo: "ana.lopez@banorte.com",
-    empleadoId: "EMP-1001",
-    rol: "COLABORADOR",
-    territorioId: "territorio-cdmx",
-    telefono: "5550000002",
-    fechaCreacion: "2025-01-15T08:30:00-06:00",
-    fechaActualizacion: "2025-01-15T08:30:00-06:00",
-    usuarioCreadorId: "user-admin",
-    estatus: "ACTIVO",
-  },
-  APROBADOR: {
-    id: "user-2",
-    nombreCompleto: "Luis Ramírez",
-    correoCorporativo: "luis.ramirez@banorte.com",
-    empleadoId: "EMP-1002",
-    rol: "APROBADOR",
-    territorioId: "territorio-cdmx",
-    telefono: "5550000003",
-    fechaCreacion: "2025-01-15T08:30:00-06:00",
-    fechaActualizacion: "2025-01-15T08:30:00-06:00",
-    usuarioCreadorId: "user-admin",
-    estatus: "ACTIVO",
-  },
-  ADMIN_FLOTA: {
-    id: "user-admin",
-    nombreCompleto: "María Torres",
-    correoCorporativo: "maria.torres@banorte.com",
-    empleadoId: "EMP-1000",
-    rol: "ADMIN_FLOTA",
-    territorioId: "territorio-cdmx",
-    telefono: "5550000001",
-    fechaCreacion: "2025-01-15T08:30:00-06:00",
-    fechaActualizacion: "2025-01-15T08:30:00-06:00",
-    usuarioCreadorId: "user-admin",
-    estatus: "ACTIVO",
-  },
-  EJECUTIVO: {
-    id: "user-3",
-    nombreCompleto: "Sofía Méndez",
-    correoCorporativo: "sofia.mendez@banorte.com",
-    empleadoId: "EMP-1003",
-    rol: "EJECUTIVO",
-    territorioId: "territorio-guadalajara",
-    telefono: "5550000004",
-    fechaCreacion: "2025-01-15T08:30:00-06:00",
-    fechaActualizacion: "2025-01-15T08:30:00-06:00",
-    usuarioCreadorId: "user-admin",
-    estatus: "ACTIVO",
-  },
+/** Valor inicial antes de que el selector de rol cargue la lista real desde Dexie; coincide con user-1 del seed (Chunk 2). */
+const USUARIO_INICIAL: Usuario = {
+  id: "user-1",
+  nombreCompleto: "Ana López",
+  correoCorporativo: "ana.lopez@banorte.com",
+  empleadoId: "EMP-1001",
+  rol: "COLABORADOR",
+  territorioId: "territorio-cdmx",
+  telefono: "5550000002",
+  fechaCreacion: "2025-01-15T08:30:00-06:00",
+  fechaActualizacion: "2025-01-15T08:30:00-06:00",
+  usuarioCreadorId: "user-admin",
+  estatus: "ACTIVO",
 };
 
 export const useSessionStore = create<SessionStore>()(
   persist(
     (set) => ({
-      rolActivo: "COLABORADOR",
-      usuarioActivo: usuariosDemo.COLABORADOR,
-      territorioActivo: "territorio-cdmx",
-      setRolActivo: (rol) =>
+      rolActivo: USUARIO_INICIAL.rol,
+      usuarioActivo: USUARIO_INICIAL,
+      territorioActivo: USUARIO_INICIAL.territorioId,
+      setUsuarioActivo: (usuario) =>
         set({
-          rolActivo: rol,
-          usuarioActivo: usuariosDemo[rol],
-          territorioActivo: usuariosDemo[rol].territorioId,
+          rolActivo: usuario.rol,
+          usuarioActivo: usuario,
+          territorioActivo: usuario.territorioId,
         }),
-      setUsuarioActivo: (usuario) => set({ usuarioActivo: usuario }),
-      setTerritorioActivo: (territorio) => set({ territorioActivo: territorio }),
       reset: () =>
         set({
-          rolActivo: "COLABORADOR",
-          usuarioActivo: usuariosDemo.COLABORADOR,
-          territorioActivo: "territorio-cdmx",
+          rolActivo: USUARIO_INICIAL.rol,
+          usuarioActivo: USUARIO_INICIAL,
+          territorioActivo: USUARIO_INICIAL.territorioId,
         }),
     }),
     {

@@ -303,3 +303,15 @@ export interface RegistroAuditoria extends BaseEntity {
   cambiosJson: string;
   fechaCambio: string;
 }
+
+/**
+ * Valor persistido de una sección editable de /administracion (horario
+ * laboral, pesos de asignación, tarifas de Uber, factores de emisión,
+ * metas gerenciales, etc.). `valorJson` es el JSON de la sección completa;
+ * el punto único de verdad para los parámetros de negocio del proyecto.
+ */
+export interface ParametroOperativo extends BaseEntity {
+  clave: string;
+  valorJson: string;
+  descripcion: string;
+}

@@ -21,8 +21,14 @@ import {
   demoVehiculos,
 } from "@/lib/seed/demo-data";
 import { generarDatosHistoricos } from "@/lib/seed/historico";
+import { restablecerConfiguracionADefecto, sincronizarConfiguracionPersistida } from "@/lib/config/runtime-config";
 
 export async function initializeDemoData() {
+  // Siempre primero: aplica en memoria cualquier parámetro editado desde
+  // /administracion (o siembra sus valores por defecto la primera vez), para
+  // que toda la app lea la configuración vigente antes de cargar sus datos.
+  await sincronizarConfiguracionPersistida();
+
   const counts = await db.transaction("rw", db.tables, async () => {
     const existingUsers = await db.usuarios.count();
     if (existingUsers > 0) {
@@ -56,6 +62,7 @@ export async function initializeDemoData() {
 }
 
 export async function resetDemoData() {
+  await restablecerConfiguracionADefecto();
   await db.delete();
   db.open();
   await initializeDemoData();

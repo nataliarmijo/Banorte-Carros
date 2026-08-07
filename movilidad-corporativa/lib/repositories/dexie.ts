@@ -10,6 +10,7 @@ import type {
   Mantenimiento,
   MetaGerencial,
   Notificacion,
+  ParametroOperativo,
   RegistroAuditoria,
   Reservacion,
   Rol,
@@ -41,6 +42,7 @@ export class MobilityDexieDB extends Dexie {
   metasGerenciales!: Table<MetaGerencial, string>;
   notificaciones!: Table<Notificacion, string>;
   registrosAuditoria!: Table<RegistroAuditoria, string>;
+  parametrosOperativos!: Table<ParametroOperativo, string>;
 
   constructor() {
     super("movilidad-corporativa-db");
@@ -64,6 +66,9 @@ export class MobilityDexieDB extends Dexie {
       metasGerenciales: "id, territorioId, tipoMeta, estatus",
       notificaciones: "id, usuarioDestinoId, solicitudId, leida, estatus",
       registrosAuditoria: "id, entidad, entidadId, usuarioId, fechaCambio, estatus",
+    });
+    this.version(2).stores({
+      parametrosOperativos: "id, clave, estatus",
     });
   }
 }

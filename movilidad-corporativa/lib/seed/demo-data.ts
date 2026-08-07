@@ -55,6 +55,11 @@ export const demoRoles: Rol[] = [
     nombreRol: "ADMIN_FLOTA",
     permisos: ["gestionar-vehiculos", "gestionar-mantenimientos", "administrar-configuracion"],
   },
+  {
+    ...createBaseEntity("rol-ejecutivo", "user-admin"),
+    nombreRol: "EJECUTIVO",
+    permisos: ["ver-analitica", "ver-fleet"],
+  },
 ];
 
 export const demoTerritorios: Territorio[] = [
@@ -75,6 +80,7 @@ export const demoUsuarios: Usuario[] = [
   { ...createBaseEntity("user-5", "user-admin"), nombreCompleto: "Patricia Vega", correoCorporativo: "patricia.vega@banorte.com", empleadoId: "EMP-1005", rol: "COLABORADOR", territorioId: "territorio-puebla", telefono: "5550000006", area: "Tecnología" },
   { ...createBaseEntity("user-6", "user-admin"), nombreCompleto: "Eduardo Cruz", correoCorporativo: "eduardo.cruz@banorte.com", empleadoId: "EMP-1006", rol: "COLABORADOR", territorioId: "territorio-queretaro", telefono: "5550000007", area: "Ventas" },
   { ...createBaseEntity("user-7", "user-admin"), nombreCompleto: "Karina Solís", correoCorporativo: "karina.solis@banorte.com", empleadoId: "EMP-1007", rol: "COLABORADOR", territorioId: "territorio-merida", telefono: "5550000008", area: "Dirección" },
+  { ...createBaseEntity("user-8", "user-admin"), nombreCompleto: "Roberto Aguilar", correoCorporativo: "roberto.aguilar@banorte.com", empleadoId: "EMP-1008", rol: "EJECUTIVO", territorioId: "territorio-cdmx", telefono: "5550000009", area: "Dirección" },
 ];
 
 export const demoVehiculos: Vehiculo[] = [

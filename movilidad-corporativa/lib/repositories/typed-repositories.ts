@@ -10,6 +10,7 @@ import type {
   Mantenimiento,
   MetaGerencial,
   Notificacion,
+  ParametroOperativo,
   RegistroAuditoria,
   Reservacion,
   Rol,
@@ -85,3 +86,4 @@ export const escenariosBaseRepository = createRepository<EscenarioBase>("escenar
 export const metasGerencialesRepository = createRepository<MetaGerencial>("metasGerenciales");
 export const notificacionesRepository = createRepository<Notificacion>("notificaciones");
 export const registrosAuditoriaRepository = createRepository<RegistroAuditoria>("registrosAuditoria");
+export const parametrosOperativosRepository = createRepository<ParametroOperativo>("parametrosOperativos");
