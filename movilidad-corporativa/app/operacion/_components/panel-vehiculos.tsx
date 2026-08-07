@@ -40,7 +40,7 @@ export function PanelVehiculos({ vehiculos }: { vehiculos: VehiculoOperativo[] }
             >
               <div className="flex items-start justify-between gap-2">
                 <p className="font-medium">
-                  {item.vehiculo.marcaModelo} ({item.vehiculo.placa})
+                  {item.vehiculo.marca} {item.vehiculo.modelo} ({item.vehiculo.placa})
                 </p>
                 <Badge variant="outline" className="shrink-0 border-transparent bg-white/70">
                   {ETIQUETAS_ESTADO_OPERATIVO[item.vehiculo.estadoOperativo]}
@@ -51,7 +51,7 @@ export function PanelVehiculos({ vehiculos }: { vehiculos: VehiculoOperativo[] }
               </p>
               <div className="mt-2">
                 <InfoDialog
-                  titulo={`${item.vehiculo.marcaModelo} (${item.vehiculo.placa})`}
+                  titulo={`${item.vehiculo.marca} ${item.vehiculo.modelo} (${item.vehiculo.placa})`}
                   trigger={
                     <Button size="sm" variant="outline" className="bg-white/70">
                       Ver detalle

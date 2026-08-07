@@ -23,7 +23,7 @@ const EXTRACTORES: Record<Columna, (f: FilaOperativa) => string | number> = {
   folio: (f) => f.solicitud.folio,
   solicitante: (f) => f.solicitanteNombre,
   territorio: (f) => f.territorioNombre,
-  vehiculo: (f) => (f.vehiculo ? `${f.vehiculo.marcaModelo} ${f.vehiculo.placa}` : ""),
+  vehiculo: (f) => (f.vehiculo ? `${f.vehiculo.marca} ${f.vehiculo.modelo} ${f.vehiculo.placa}` : ""),
   modalidad: (f) => f.solicitud.modalidadRequerida,
   estado: (f) => f.solicitud.estadoSolicitud,
   salida: (f) => `${f.solicitud.fechaSolicitud}T${f.solicitud.horaInicioDeseada}`,
@@ -117,7 +117,7 @@ export function TablaOperativa({ filas, usuarioActivoId, onReasignado }: TablaOp
                   <TableCell className="font-medium">{f.solicitud.folio}</TableCell>
                   <TableCell>{f.solicitanteNombre}</TableCell>
                   <TableCell>{f.territorioNombre}</TableCell>
-                  <TableCell>{f.vehiculo ? `${f.vehiculo.marcaModelo} (${f.vehiculo.placa})` : "Sin asignar"}</TableCell>
+                  <TableCell>{f.vehiculo ? `${f.vehiculo.marca} ${f.vehiculo.modelo} (${f.vehiculo.placa})` : "Sin asignar"}</TableCell>
                   <TableCell>{MEDIO_LABELS[f.solicitud.modalidadRequerida]}</TableCell>
                   <TableCell>
                     <EstadoBadge estado={f.solicitud.estadoSolicitud} />
