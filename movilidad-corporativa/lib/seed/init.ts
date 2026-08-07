@@ -20,6 +20,7 @@ import {
   demoUsuarios,
   demoVehiculos,
 } from "@/lib/seed/demo-data";
+import { generarDatosHistoricos } from "@/lib/seed/historico";
 
 export async function initializeDemoData() {
   const counts = await db.transaction("rw", db.tables, async () => {
@@ -58,4 +59,38 @@ export async function resetDemoData() {
   await db.delete();
   db.open();
   await initializeDemoData();
+}
+
+/**
+ * Genera y persiste ~12 meses de datos históricos (solicitudes, reservaciones,
+ * check-outs, incidencias) para alimentar /analitica. Estrictamente aditivo e
+ * idempotente: usa ids con el prefijo "*-hist-*" que nunca colisionan con el
+ * seed base, y no toca ni es invocada por initializeDemoData(), así que no
+ * afecta el conteo de datos que asumen las demás pantallas ni las pruebas.
+ */
+export async function initializeHistoricalData() {
+  await initializeDemoData();
+
+  const yaExiste = await db.solicitudes.where("id").startsWith("sol-hist-").count();
+  if (yaExiste > 0) {
+    return { seeded: false };
+  }
+
+  const [vehiculosBase, usuariosBase] = await Promise.all([db.vehiculos.toArray(), db.usuarios.toArray()]);
+  const datos = generarDatosHistoricos(vehiculosBase, usuariosBase);
+
+  await db.transaction("rw", db.solicitudes, db.reservaciones, db.checkOuts, db.incidencias, async () => {
+    await db.solicitudes.bulkAdd(datos.solicitudes);
+    await db.reservaciones.bulkAdd(datos.reservaciones);
+    await db.checkOuts.bulkAdd(datos.checkOuts);
+    await db.incidencias.bulkAdd(datos.incidencias);
+  });
+
+  return {
+    seeded: true,
+    solicitudes: datos.solicitudes.length,
+    reservaciones: datos.reservaciones.length,
+    checkOuts: datos.checkOuts.length,
+    incidencias: datos.incidencias.length,
+  };
 }

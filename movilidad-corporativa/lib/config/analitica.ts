@@ -26,6 +26,12 @@ export const ANALITICA_CONFIG = {
   // Meta de tasa de aprobación de solicitudes (aprobadas / (aprobadas + rechazadas)).
   metaTasaAprobacionPorcentaje: 85,
 
+  // Techo aceptable de uso fuera de horario laboral (% de viajes completados).
+  metaMaximaUsoFueraDeHorarioPorcentaje: 10,
+
+  // Techo aceptable de incidencias por cada 100 viajes.
+  metaMaximaIncidenciasPorCadaCienViajes: 5,
+
   // Inversión estimada de la iniciativa de movilidad corporativa (plataforma,
   // integración, adopción), usada para estimar el ROI a partir del ahorro acumulado.
   costoImplementacionEstimadoMx: 850000,

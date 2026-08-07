@@ -21,7 +21,7 @@ import { mapTipoCombustible, mapTipoVehiculo } from "@/lib/adapters/flota";
 import type {
   CheckOut,
   Incidencia,
-  ModalidadVehiculo,
+  NivelPrioridad,
   Reservacion,
   Solicitud,
   TipoIncidencia,
@@ -29,7 +29,6 @@ import type {
   Vehiculo,
 } from "@/lib/models";
 import type { ModalidadFlota } from "@/lib/config/costos";
-import type { NivelPrioridad } from "@/lib/models";
 
 // ---------------------------------------------------------------------------
 // PRNG determinista (mulberry32): misma semilla -> misma secuencia siempre,
@@ -101,11 +100,6 @@ export interface DatosHistoricos {
   reservaciones: Reservacion[];
   checkOuts: CheckOut[];
   incidencias: Incidencia[];
-}
-
-interface VehiculoConTrips {
-  vehiculo: Vehiculo;
-  reservacionesDelMes: { reservacionId: string; solicitudId: string }[];
 }
 
 /**
