@@ -16,6 +16,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { esCancelable, type SolicitudListItem } from "@/lib/adapters/reservaciones";
+import { esFechaSalidaVigente } from "@/lib/services/servicio-checkin";
 
 interface AccionesSolicitudProps {
   item: SolicitudListItem;
@@ -37,7 +38,12 @@ export function AccionesSolicitud({
 
   const esDueño = solicitud.usuarioSolicitanteId === usuarioActivoId;
   const puedeCancelar = esDueño && esCancelable(solicitud);
-  const puedeCheckIn = solicitud.estadoSolicitud === "LISTA_CHECK_IN";
+  const puedeCheckIn =
+    esDueño &&
+    (solicitud.estadoSolicitud === "LISTA_CHECK_IN" || solicitud.estadoSolicitud === "ASIGNADA") &&
+    Boolean(item.reservacion) &&
+    !item.reservacion!.vehiculoId.startsWith("uber-") &&
+    esFechaSalidaVigente(item.reservacion!.fechaInicio);
   const puedeCheckOut = solicitud.estadoSolicitud === "EN_CURSO";
 
   async function confirmarCancelacion() {
@@ -61,7 +67,7 @@ export function AccionesSolicitud({
         <Button
           size={compacto ? "sm" : "default"}
           variant="outline"
-          render={<Link href={`/check-in?reservacion=${solicitud.id}`} />}
+          render={<Link href={`/check-in?reservacion=${item.reservacion!.id}`} />}
           nativeButton={false}
         >
           <LogIn className="h-3.5 w-3.5" /> Check-in

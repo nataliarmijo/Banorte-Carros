@@ -116,7 +116,19 @@ export const demoAprobaciones: Aprobacion[] = [
 ];
 
 export const demoCheckIns: CheckIn[] = [
-  { ...createBaseEntity("checkin-1", "user-1", "COMPLETADA"), reservacionId: "res-1", usuarioId: "user-1", fechaHoraCheckIn: "2025-01-15T08:30:00-06:00", ubicacion: "Torre Banorte", observaciones: "Ingreso normal" },
+  {
+    ...createBaseEntity("checkin-1", "user-1", "COMPLETADA"),
+    reservacionId: "res-1",
+    usuarioId: "user-1",
+    fechaHoraCheckIn: "2025-01-15T08:30:00-06:00",
+    ubicacion: "Torre Banorte",
+    kilometrajeInicial: 18250,
+    combustibleInicial: 90,
+    fotos: [],
+    firmaElectronica: "Firma electrónica simulada · Ana López · 2025-01-15",
+    responsivaAceptada: true,
+    observaciones: "Ingreso normal",
+  },
 ];
 export const demoCheckOuts: CheckOut[] = [
   { ...createBaseEntity("checkout-1", "user-1", "COMPLETADA"), reservacionId: "res-1", usuarioId: "user-1", fechaHoraCheckOut: "2025-01-15T18:00:00-06:00", kilometrajeFinal: 18450, combustibleRestante: 45, observaciones: "Fin de servicio" },

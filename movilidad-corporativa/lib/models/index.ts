@@ -139,6 +139,13 @@ export interface CheckIn extends BaseEntity {
   usuarioId: string;
   fechaHoraCheckIn: string;
   ubicacion: string;
+  kilometrajeInicial: number;
+  combustibleInicial: number; // porcentaje 0-100
+  /** Referencias simuladas (data URLs) de las fotografías del vehículo; almacenamiento simulado, no sube a un servidor. */
+  fotos: string[];
+  /** Firma electrónica simulada (data URL del trazo capturado en el canvas de firma). */
+  firmaElectronica: string;
+  responsivaAceptada: boolean;
   observaciones?: string;
 }
 
