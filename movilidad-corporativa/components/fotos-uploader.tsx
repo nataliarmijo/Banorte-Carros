@@ -2,34 +2,30 @@
 
 import { useRef } from "react";
 import { Camera, X } from "lucide-react";
+import { proveedorAlmacenamiento } from "@/lib/integraciones/almacenamiento";
+import { BadgeIntegracionSimulada } from "@/components/badge-integracion-simulada";
 
 interface FotosUploaderProps {
   fotos: string[];
   onFotosChange: (fotos: string[]) => void;
+  /** Carpeta lógica para el proveedor de almacenamiento, p. ej. "check-in" | "check-out" | "incidencias". */
+  carpeta?: string;
 }
 
-function leerComoDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
-}
-
-/** Simulación de carga de archivos: convierte las fotos a data URLs y las guarda localmente (no sube a un servidor). Usado en check-in y check-out. */
-export function FotosUploader({ fotos, onFotosChange }: FotosUploaderProps) {
+/** Carga de fotos vía IProveedorAlmacenamiento (mock: las guarda como data URL, no sube a un servidor). Usado en check-in, check-out e incidencias. */
+export function FotosUploader({ fotos, onFotosChange, carpeta = "general" }: FotosUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function manejarSeleccion(e: React.ChangeEvent<HTMLInputElement>) {
     const archivos = Array.from(e.target.files ?? []);
     if (archivos.length === 0) return;
-    const nuevas = await Promise.all(archivos.map(leerComoDataUrl));
-    onFotosChange([...fotos, ...nuevas]);
+    const guardados = await Promise.all(archivos.map((archivo) => proveedorAlmacenamiento.guardarArchivo(archivo, carpeta)));
+    onFotosChange([...fotos, ...guardados.map((g) => g.url)]);
     e.target.value = "";
   }
 
   function eliminar(indice: number) {
+    void proveedorAlmacenamiento.eliminarArchivo(fotos[indice]);
     onFotosChange(fotos.filter((_, i) => i !== indice));
   }
 
@@ -69,9 +65,10 @@ export function FotosUploader({ fotos, onFotosChange }: FotosUploaderProps) {
         className="hidden"
         onChange={manejarSeleccion}
       />
-      <p className="mt-2 text-xs text-slate-500">
-        Almacenamiento simulado: las fotos se guardan localmente como referencia, no se suben a un servidor.
-      </p>
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <BadgeIntegracionSimulada titulo="Las fotos se guardan localmente como referencia (IndexedDB); no se suben a un servidor." />
+        <p className="text-xs text-slate-500">Almacenamiento simulado: no se sube a un servidor.</p>
+      </div>
     </div>
   );
 }

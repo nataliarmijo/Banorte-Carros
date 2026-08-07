@@ -18,6 +18,8 @@ import { validarDatosCheckIn } from "@/lib/services/servicio-checkin";
 import { CHECKIN_CONFIG } from "@/lib/config/checkin";
 import { esResultadoSinDatos } from "@/lib/services/types";
 import { FotosUploader } from "@/components/fotos-uploader";
+import { BadgeIntegracionSimulada } from "@/components/badge-integracion-simulada";
+import { proveedorFirmaElectronica } from "@/lib/integraciones/firma-electronica";
 import { FirmaCanvas } from "./_components/firma-canvas";
 
 const PRESETS_COMBUSTIBLE = [0, 25, 50, 75, 100];
@@ -101,6 +103,12 @@ function CheckInContent() {
     setEnviando(true);
     setErrorEnvio(null);
     try {
+      await proveedorFirmaElectronica.registrarFirma(firmaElectronica ?? "", {
+        usuarioId: usuarioActivo.id,
+        nombreCompleto: usuarioActivo.nombreCompleto,
+        documentoId: contexto.reservacion.id,
+      });
+
       const resultado = await registrarCheckIn({
         reservacionId: contexto.reservacion.id,
         usuarioId: usuarioActivo.id,
@@ -266,7 +274,7 @@ function CheckInContent() {
             <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
               <p className="text-sm font-semibold text-slate-900">Fotografías del vehículo</p>
               <div className="mt-3">
-                <FotosUploader fotos={fotos} onFotosChange={setFotos} />
+                <FotosUploader fotos={fotos} onFotosChange={setFotos} carpeta="check-in" />
               </div>
             </section>
 
@@ -288,7 +296,10 @@ function CheckInContent() {
             </section>
 
             <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-              <p className="text-sm font-semibold text-slate-900">Firma electrónica</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-semibold text-slate-900">Firma electrónica</p>
+                <BadgeIntegracionSimulada titulo="No se emite ningún certificado ni sobre firmado real; el proveedor de firma electrónica es un mock." />
+              </div>
               <p className="mt-1 text-xs text-slate-500">
                 Firmando como: {usuarioActivo.nombreCompleto} · {new Date().toLocaleDateString("es-MX")}
               </p>

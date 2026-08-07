@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { CheckCircle2, Clock3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BadgeIntegracionSimulada } from "@/components/badge-integracion-simulada";
 import { useNuevaSolicitudStore } from "@/lib/stores/nueva-solicitud";
 import { useSessionStore } from "@/lib/stores/session";
 
@@ -30,6 +31,17 @@ export function PantallaExito() {
       <div className="mt-4 rounded-full bg-slate-100 px-4 py-1.5 text-sm font-medium text-slate-800">
         {asignada ? `Vehículo asignado${resultadoExito.vehiculoAsignadoNombre ? `: ${resultadoExito.vehiculoAsignadoNombre}` : ""}` : "Pendiente de aprobación"}
       </div>
+
+      {resultadoExito.confirmacionUber && (
+        <div className="mt-4 max-w-md rounded-2xl border border-amber-200 bg-amber-50 p-4 text-left">
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-semibold text-slate-900">Viaje Uber solicitado</p>
+            <BadgeIntegracionSimulada />
+          </div>
+          <p className="mt-1 text-xs text-slate-600">Folio simulado: {resultadoExito.confirmacionUber.referenciaProveedor}</p>
+          <p className="mt-1 text-xs text-slate-600">{resultadoExito.confirmacionUber.mensaje}</p>
+        </div>
+      )}
 
       <p className="mt-4 max-w-md text-sm text-slate-600">
         {asignada

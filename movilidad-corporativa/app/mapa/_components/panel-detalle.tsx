@@ -3,6 +3,7 @@
 import { Car, Clock3, Gauge, MapPin, User, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { BadgeIntegracionSimulada } from "@/components/badge-integracion-simulada";
 import { MEDIO_LABELS } from "@/lib/ui/estado-solicitud";
 import type { VehiculoMapa } from "@/lib/adapters/mapa";
 import { ESTILO_BADGE_ESTADO, ETIQUETA_ESTADO } from "../_lib/estilos";
@@ -33,6 +34,9 @@ function Contenido({ v }: { v: VehiculoMapa }) {
             {ETIQUETA_ESTADO[v.estadoMapa]}
           </Badge>
           <Badge variant="secondary">{MEDIO_LABELS[v.vehiculo.modalidad]}</Badge>
+          {v.actualizacionEsSimulada && (
+            <BadgeIntegracionSimulada titulo="No hay un proveedor de GPS/telemetría real conectado; la posición se calcula a partir del territorio del vehículo." />
+          )}
         </div>
       </div>
 

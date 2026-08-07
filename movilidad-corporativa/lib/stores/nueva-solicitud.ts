@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type { Alternativa, TipoVehiculo } from "@/lib/services/types";
+import type { ConfirmacionViajeUber } from "@/lib/integraciones/uber";
 
 /**
  * Borrador del wizard de nueva solicitud. Se guarda como string en los
@@ -30,6 +31,7 @@ export interface ResultadoExitoSolicitud {
   solicitudId: string;
   estado: "ASIGNADA" | "PENDIENTE_APROBACION";
   vehiculoAsignadoNombre?: string;
+  confirmacionUber?: ConfirmacionViajeUber;
 }
 
 function datosIniciales(territorioActivo: string): DatosViajeBorrador {

@@ -172,10 +172,13 @@ describe("flujo completo: Colaborador crea -> Aprobador decide -> Mis reservacio
     const misReservaciones = await listarSolicitudesDeUsuario(COLABORADOR_ID);
     expect(misReservaciones.find((r) => r.solicitud.id === envio.solicitudId)?.solicitud.estadoSolicitud).toBe("BORRADOR");
 
+    // La solicitud ya generó una notificación "SOLICITUD_CREADA" para el aprobador al enviarse;
+    // aquí verificamos específicamente la de "SOLICITUD_CAMBIOS" para el colaborador.
     const notificaciones = await db.notificaciones.where("solicitudId").equals(envio.solicitudId).toArray();
-    expect(notificaciones).toHaveLength(1);
-    expect(notificaciones[0].usuarioDestinoId).toBe(COLABORADOR_ID);
-    expect(notificaciones[0].mensaje).toContain("jornada laboral");
+    const notificacionCambios = notificaciones.find((n) => n.tipoNotificacion === "SOLICITUD_CAMBIOS");
+    expect(notificacionCambios).toBeDefined();
+    expect(notificacionCambios?.usuarioDestinoId).toBe(COLABORADOR_ID);
+    expect(notificacionCambios?.mensaje).toContain("jornada laboral");
 
     const auditorias = await db.registrosAuditoria.where("entidadId").equals(envio.solicitudId).toArray();
     expect(auditorias.some((a) => a.accion === "SOLICITUD_CAMBIOS")).toBe(true);

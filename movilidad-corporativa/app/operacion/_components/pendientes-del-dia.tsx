@@ -1,11 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, Clock3, LogIn, LogOut, PhoneCall, Repeat } from "lucide-react";
+import { Bell, CheckCircle2, Clock3, LogIn, LogOut, PhoneCall, Repeat } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MEDIO_LABELS } from "@/lib/ui/estado-solicitud";
-import type { FilaOperativa } from "@/lib/adapters/operacion";
+import { enviarRecordatorio, type FilaOperativa } from "@/lib/adapters/operacion";
 import { DialogoReasignacion } from "./dialogo-reasignacion";
 
 interface PendientesDelDiaProps {
@@ -52,6 +53,27 @@ export function PendientesDelDia({
         onReasignado={onReasignado}
       />
     </section>
+  );
+}
+
+function BotonRecordatorio({ fila, tipo }: { fila: FilaOperativa; tipo: "ENTREGA" | "DEVOLUCION" }) {
+  const [enviado, setEnviado] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+
+  return (
+    <Button
+      size="sm"
+      variant="outline"
+      disabled={enviando || enviado}
+      onClick={async () => {
+        setEnviando(true);
+        await enviarRecordatorio(fila, tipo);
+        setEnviando(false);
+        setEnviado(true);
+      }}
+    >
+      <Bell className="h-3.5 w-3.5" /> {enviado ? "Recordatorio enviado" : enviando ? "Enviando..." : "Enviar recordatorio"}
+    </Button>
   );
 }
 
@@ -158,6 +180,8 @@ function ListaPendientes({
                       )}
                     </Button>
                   )}
+
+                  {!coordinada && <BotonRecordatorio fila={f} tipo={tipo} />}
                 </div>
               </li>
             );

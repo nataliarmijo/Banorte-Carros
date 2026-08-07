@@ -23,6 +23,7 @@ import { construirCandidatosFlota, type CandidatoFlota } from "@/lib/adapters/fl
 import { esResultadoSinDatos } from "@/lib/services/types";
 import type { ResultadoSinDatos } from "@/lib/services/types";
 import { esIncidenciaAbierta } from "@/lib/ui/incidencias";
+import { notificarRecordatorio } from "@/lib/adapters/notificaciones";
 
 /** Fecha calendario LOCAL (no UTC) en formato yyyy-MM-dd; consistente con un <input type="date">. */
 export function fechaLocalISO(fecha: Date): string {
@@ -226,6 +227,16 @@ export async function marcarCoordinacion(
     cambiosJson: JSON.stringify({ tipo, fecha: fechaLocalISO(new Date()) }),
     fechaCambio: ahora,
   });
+}
+
+/** Envía (simulado) un recordatorio de check-in/check-out al solicitante de una fila pendiente. */
+export async function enviarRecordatorio(fila: FilaOperativa, tipo: "ENTREGA" | "DEVOLUCION"): Promise<void> {
+  await notificarRecordatorio(
+    fila.solicitud.usuarioSolicitanteId,
+    tipo === "ENTREGA" ? "RECORDATORIO_CHECKIN" : "RECORDATORIO_CHECKOUT",
+    fila.solicitud.folio,
+    fila.solicitud.id
+  );
 }
 
 /** Candidatos disponibles para reasignar (misma modalidad y territorio del vehículo actual, disponibles para el periodo, excluyendo el actual). */

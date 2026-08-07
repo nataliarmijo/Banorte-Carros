@@ -17,6 +17,8 @@ import { esResultadoSinDatos } from "@/lib/services/types";
 import type { Alternativa, BorradorSolicitud, ResultadoComparacion, TipoVehiculo } from "@/lib/services/types";
 import type { SolicitudAsignacion } from "@/lib/services/servicioAsignacion";
 import { asignarVehiculoDeFlota } from "@/lib/adapters/flota";
+import { proveedorUber, type ConfirmacionViajeUber } from "@/lib/integraciones/uber";
+import { notificarSolicitudCreada, notificarVehiculoAsignado } from "@/lib/adapters/notificaciones";
 
 export interface DatosViajeValidados {
   territorio: string;
@@ -50,6 +52,8 @@ export interface EnvioSolicitudExito {
   solicitudId: string;
   estado: "ASIGNADA" | "PENDIENTE_APROBACION";
   vehiculoAsignadoNombre?: string;
+  /** Presente sólo cuando la alternativa elegida es Uber; siempre `esSimulado: true` (ver /lib/integraciones/uber.ts). */
+  confirmacionUber?: ConfirmacionViajeUber;
 }
 
 export function generarFolio(secuencial: number, fecha: Date = new Date()): string {
@@ -142,16 +146,25 @@ export async function crearSolicitudDesdeWizard(
         fechaDecision: ahora,
       };
       await aprobacionesRepository.create(aprobacion);
+      await notificarSolicitudCreada(aprobador.id, folio, solicitudId);
     }
     return { folio, solicitudId, estado: "PENDIENTE_APROBACION" };
   }
 
   let vehiculoId: string;
   let vehiculoAsignadoNombre: string | undefined;
+  let confirmacionUber: ConfirmacionViajeUber | undefined;
 
   if (alternativaSeleccionada === "UBER") {
     vehiculoId = `uber-${folio}`;
     vehiculoAsignadoNombre = "Uber (servicio externo)";
+    confirmacionUber = await proveedorUber.solicitarViaje({
+      km: datos.distanciaEstimadaKm,
+      duracionMinutos: duracionEstimadaMinutos,
+      origen: datos.origen,
+      destino: datos.destino,
+      pasajero: usuarioSolicitanteId,
+    });
   } else {
     const solicitudAsignacion: SolicitudAsignacion = {
       territorio: datos.territorio,
@@ -196,5 +209,9 @@ export async function crearSolicitudDesdeWizard(
   };
   await reservacionesRepository.create(reservacion);
 
-  return { folio, solicitudId, estado: "ASIGNADA", vehiculoAsignadoNombre };
+  if (alternativaSeleccionada !== "UBER" && vehiculoAsignadoNombre) {
+    await notificarVehiculoAsignado(usuarioSolicitanteId, folio, solicitudId, vehiculoAsignadoNombre);
+  }
+
+  return { folio, solicitudId, estado: "ASIGNADA", vehiculoAsignadoNombre, confirmacionUber };
 }

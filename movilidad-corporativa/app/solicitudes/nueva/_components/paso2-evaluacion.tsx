@@ -14,6 +14,7 @@ import {
 } from "@/lib/adapters/flota";
 import { PARAMS_CONFIG } from "@/lib/config/params";
 import { esResultadoSinDatos, type Alternativa } from "@/lib/services/types";
+import { BadgeIntegracionSimulada } from "@/components/badge-integracion-simulada";
 import { validarPaso1 } from "../_lib/schema";
 import { combinarFechaHora, estimarDuracionMinutos, ALTERNATIVA_LABELS } from "../_lib/utils";
 
@@ -181,9 +182,12 @@ export function Paso2Evaluacion() {
                 {alt.emisiones.totalKgCo2.toFixed(1)} kg CO₂
               </div>
 
-              <div className="mt-3">
+              <div className="mt-3 flex flex-wrap gap-1.5">
                 {alt.tipo === "UBER" ? (
-                  <Badge variant="secondary">Siempre disponible</Badge>
+                  <>
+                    <Badge variant="secondary">Siempre disponible</Badge>
+                    <BadgeIntegracionSimulada titulo="La cotización de Uber es una simulación; no proviene de la API real de Uber for Business." />
+                  </>
                 ) : alt.disponible ? (
                   <Badge variant="secondary">Disponible</Badge>
                 ) : (

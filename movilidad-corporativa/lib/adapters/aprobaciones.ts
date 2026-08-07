@@ -13,7 +13,6 @@ import {
   registrosAuditoriaRepository,
   reservacionesRepository,
   solicitudesRepository,
-  notificacionesRepository,
 } from "@/lib/repositories/typed-repositories";
 import type { Aprobacion, EstadoSolicitud, Reservacion, Solicitud } from "@/lib/models";
 import { PARAMS_CONFIG } from "@/lib/config/params";
@@ -21,8 +20,10 @@ import { evaluarAlternativasParaSolicitud, asignarVehiculoDeFlota, type DatosEva
 import { esResultadoSinDatos, crearResultadoSinDatos } from "@/lib/services/types";
 import type { Alternativa, ResultadoComparacion, ResultadoSinDatos, TipoVehiculo } from "@/lib/services/types";
 import type { SolicitudAsignacion } from "@/lib/services/servicioAsignacion";
+import { proveedorUber } from "@/lib/integraciones/uber";
+import { proveedorNotificaciones } from "@/lib/integraciones/notificaciones";
+import { notificarSolicitudRechazada, notificarSolicitudAprobada, notificarVehiculoAsignado } from "@/lib/adapters/notificaciones";
 
-/** A partir de cuántas horas antes de la salida una solicitud se marca como urgente. */
 const TIPOS_VEHICULO_VALIDOS: readonly TipoVehiculo[] = ["sedan-compacto", "sedan-ejecutivo", "suv-asignado"];
 
 function esTipoVehiculoValido(valor: string | undefined): valor is TipoVehiculo {
@@ -243,6 +244,7 @@ export async function decidirSolicitud(input: DecisionInput): Promise<DecisionEx
       fechaActualizacion: ahora,
     });
     await registrarAuditoria(solicitud.id, input.aprobadorId, "RECHAZO", { decision: "RECHAZADA", comentario }, ahora);
+    await notificarSolicitudRechazada(solicitud.usuarioSolicitanteId, solicitud.folio, solicitud.id, comentario);
     return { solicitud: solicitudActualizada as Solicitud };
   }
 
@@ -255,18 +257,11 @@ export async function decidirSolicitud(input: DecisionInput): Promise<DecisionEx
       comentario,
       fechaActualizacion: ahora,
     });
-    await notificacionesRepository.create({
-      id: crypto.randomUUID(),
-      fechaCreacion: ahora,
-      fechaActualizacion: ahora,
-      usuarioCreadorId: input.aprobadorId,
-      estatus: "ACTIVO",
+    await proveedorNotificaciones.notificar({
       usuarioDestinoId: solicitud.usuarioSolicitanteId,
+      tipo: "SOLICITUD_CAMBIOS",
       solicitudId: solicitud.id,
-      tipoNotificacion: "SOLICITUD_CAMBIOS",
       mensaje: comentario,
-      leida: false,
-      canal: "EMAIL",
     });
     await registrarAuditoria(solicitud.id, input.aprobadorId, "SOLICITUD_CAMBIOS", { comentario }, ahora);
     return { solicitud: solicitudActualizada as Solicitud };
@@ -289,9 +284,18 @@ export async function decidirSolicitud(input: DecisionInput): Promise<DecisionEx
 
   let reservacion: Reservacion | undefined;
   let estadoFinal: EstadoSolicitud;
+  let confirmacionUberMensaje: string | undefined;
 
   if (medioRecomendado === "UBER") {
     estadoFinal = "APROBADA";
+    const confirmacionUber = await proveedorUber.solicitarViaje({
+      km: solicitud.distanciaEstimadaKm ?? 0,
+      duracionMinutos: solicitud.duracionEstimadaMinutos,
+      origen: solicitud.origen,
+      destino: solicitud.destino,
+      pasajero: solicitud.usuarioSolicitanteId,
+    });
+    confirmacionUberMensaje = confirmacionUber.mensaje;
   } else {
     const fechaSalida = datosEvaluacion?.fechaSalida ?? combinarFechaHora(solicitud.fechaSolicitud, solicitud.horaInicioDeseada);
     const fechaRegreso =
@@ -352,6 +356,13 @@ export async function decidirSolicitud(input: DecisionInput): Promise<DecisionEx
     { decision: "APROBADA", medio: medioRecomendado, comentario },
     ahora
   );
+
+  await notificarSolicitudAprobada(solicitud.usuarioSolicitanteId, solicitud.folio, solicitud.id, confirmacionUberMensaje);
+  if (reservacion) {
+    const vehiculoAsignado = await db.vehiculos.get(reservacion.vehiculoId);
+    const vehiculoNombre = vehiculoAsignado ? `${vehiculoAsignado.marca} ${vehiculoAsignado.modelo} (${vehiculoAsignado.placa})` : reservacion.vehiculoId;
+    await notificarVehiculoAsignado(solicitud.usuarioSolicitanteId, solicitud.folio, solicitud.id, vehiculoNombre);
+  }
 
   return { solicitud: solicitudActualizada as Solicitud, reservacion };
 }

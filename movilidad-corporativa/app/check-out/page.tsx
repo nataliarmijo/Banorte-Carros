@@ -261,7 +261,7 @@ function CheckOutContent() {
             <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
               <p className="text-sm font-semibold text-slate-900">Fotografías del vehículo al devolver</p>
               <div className="mt-3">
-                <FotosUploader fotos={fotos} onFotosChange={setFotos} />
+                <FotosUploader fotos={fotos} onFotosChange={setFotos} carpeta="check-out" />
               </div>
             </section>
 

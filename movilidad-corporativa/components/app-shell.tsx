@@ -7,6 +7,7 @@ import { Menu, X, LayoutGrid, PlusCircle, CalendarDays, ShieldCheck, Bus, MapPin
 import { useSessionStore, type RolActivo } from "@/lib/stores/session";
 import { RoleSelector } from "@/components/role-selector";
 import { AlertaIncidenciasCriticas } from "@/components/alerta-incidencias-criticas";
+import { BandejaNotificaciones } from "@/components/bandeja-notificaciones";
 
 type NavigationItem = {
   label: string;
@@ -154,6 +155,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </div>
               <div className="flex items-center gap-2">
                 <AlertaIncidenciasCriticas />
+                <BandejaNotificaciones />
                 <RoleSelector />
               </div>
             </div>

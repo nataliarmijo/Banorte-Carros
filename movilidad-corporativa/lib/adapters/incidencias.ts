@@ -15,6 +15,7 @@ import { calcularIncidenciasPorCadaCienViajes, type TasaIncidencias } from "@/li
 import { esIncidenciaAbierta } from "@/lib/ui/incidencias";
 import { crearResultadoSinDatos } from "@/lib/services/types";
 import type { ResultadoSinDatos } from "@/lib/services/types";
+import { notificarIncidenciaCritica } from "@/lib/adapters/notificaciones";
 
 function nombreTerritorio(territorioId: string): string {
   const territorio = PARAMS_CONFIG.territorios[territorioId as keyof typeof PARAMS_CONFIG.territorios];
@@ -162,6 +163,13 @@ export async function crearIncidenciaManual(datos: DatosIncidenciaManual, usuari
   };
   await incidenciasRepository.create(incidencia);
   await registrarAuditoria(incidencia.id, usuarioId, "CREAR", { tipoIncidencia: incidencia.tipoIncidencia, severidad: incidencia.severidad });
+
+  if (incidencia.severidad === "CRITICA") {
+    const vehiculoNombre = `${vehiculo.marca} ${vehiculo.modelo} (${vehiculo.placa})`;
+    const adminsFlota = await db.usuarios.where("rol").equals("ADMIN_FLOTA").toArray();
+    await Promise.all(adminsFlota.map((admin) => notificarIncidenciaCritica(admin.id, incidencia.descripcion, vehiculoNombre)));
+  }
+
   return incidencia;
 }
 

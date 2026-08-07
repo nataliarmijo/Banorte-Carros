@@ -197,7 +197,7 @@ export function DialogoNuevaIncidencia({ vehiculos, responsables, usuarioActivoI
 
           <div className="space-y-1.5">
             <Label>Evidencia fotográfica (opcional)</Label>
-            <FotosUploader fotos={fotos} onFotosChange={setFotos} />
+            <FotosUploader fotos={fotos} onFotosChange={setFotos} carpeta="incidencias" />
           </div>
         </div>
 

@@ -1,22 +1,18 @@
 /**
- * Adaptador para /mapa: arma posiciones SIMULADAS de la flotilla Pool/
- * Asignado y de los orígenes de las solicitudes activas, a partir de las
- * coordenadas reales de cada territorio (PARAMS_CONFIG) más un
- * desplazamiento pseudoaleatorio determinístico por vehículo/solicitud —
- * el proyecto no tiene un proveedor de mapas/GPS real conectado.
- *
- * Punto de integración futura (Chunk 18, telemetría real): sustituir
- * `simularPosicion` por una lectura real de latitud/longitud/velocidad
- * reportada por un proveedor de GPS/telemática (p. ej. un webhook o
- * polling periódico a la API del proveedor que alimente la tabla
- * `ubicacionesGPS`), y usar su `timestampLectura` real en vez de
- * `ultimaActualizacion` simulada aquí.
+ * Adaptador para /mapa: arma posiciones de la flotilla Pool/Asignado y de
+ * los orígenes de las solicitudes activas, a partir de las coordenadas de
+ * cada territorio (PARAMS_CONFIG) y de `IProveedorGPS`
+ * (/lib/integraciones/gps.ts) — hoy conectado a `ProveedorGPSMock`, que
+ * simula la posición de un vehículo salvo que ya exista una lectura real en
+ * `ubicacionesGPS`. Sustituir el proveedor real es el único cambio
+ * necesario para conectar telemetría real (ver README de integraciones).
  */
 
 import { db } from "@/lib/repositories/dexie";
 import type { EstadoSolicitud, Reservacion, Solicitud, Vehiculo } from "@/lib/models";
 import { PARAMS_CONFIG } from "@/lib/config/params";
 import { estaFueraDeHorarioLaboral } from "@/lib/services/servicio-checkout";
+import { desplazamientoSimulado, proveedorGPS } from "@/lib/integraciones/gps";
 
 /** Bounding box aproximado de México (lat/lon), usado solo para proyectar los territorios en el mapa esquemático. */
 export const MEXICO_BOUNDS = {
@@ -31,33 +27,9 @@ export type EstadoMapaVehiculo = "DISPONIBLE" | "EN_USO" | "FUERA_DE_HORARIO" | 
 const ESTADOS_RESERVACION_ACTIVOS_FUTURO: EstadoSolicitud[] = ["ASIGNADA", "LISTA_CHECK_IN"];
 const ESTADOS_SOLICITUD_ACTIVA: EstadoSolicitud[] = ["PENDIENTE_APROBACION", "APROBADA", "ASIGNADA", "LISTA_CHECK_IN"];
 
-function hashCadena(texto: string): number {
-  let hash = 0;
-  for (let i = 0; i < texto.length; i++) {
-    hash = (hash * 31 + texto.charCodeAt(i)) >>> 0;
-  }
-  return hash;
-}
-
-/** Desplazamiento pseudoaleatorio pero determinístico (mismo id -> misma posición) alrededor de un centro, en grados. */
-function desplazamientoSimulado(id: string, radioMaximoGrados: number): { dLat: number; dLon: number } {
-  const hash = hashCadena(id);
-  const angulo = (hash % 360) * (Math.PI / 180);
-  const radio = (((hash >>> 8) % 100) / 100) * radioMaximoGrados;
-  return { dLat: Math.sin(angulo) * radio, dLon: Math.cos(angulo) * radio };
-}
-
 function nombreTerritorio(territorioId: string): string {
   const territorio = PARAMS_CONFIG.territorios[territorioId as keyof typeof PARAMS_CONFIG.territorios];
   return territorio?.nombre ?? territorioId;
-}
-
-/** Posición simulada de un vehículo: centro del territorio + desplazamiento propio, para que no se amontonen exactamente. */
-function simularPosicionVehiculo(territorioId: string, vehiculoId: string): { latitud: number; longitud: number } | null {
-  const territorio = PARAMS_CONFIG.territorios[territorioId as keyof typeof PARAMS_CONFIG.territorios];
-  if (!territorio) return null;
-  const { dLat, dLon } = desplazamientoSimulado(vehiculoId, 0.7);
-  return { latitud: territorio.latitud + dLat, longitud: territorio.longitud + dLon };
 }
 
 export function calcularEstadoMapa(vehiculo: Vehiculo, ahora: Date): EstadoMapaVehiculo {
@@ -67,11 +39,6 @@ export function calcularEstadoMapa(vehiculo: Vehiculo, ahora: Date): EstadoMapaV
     return estaFueraDeHorarioLaboral(ahora) ? "FUERA_DE_HORARIO" : "EN_USO";
   }
   return "DISPONIBLE";
-}
-
-/** Minutos simulados desde la "última actualización" del GPS: determinístico por vehículo, entre 1 y 20 minutos. */
-function minutosSimuladosDesdeActualizacion(vehiculoId: string): number {
-  return 1 + (hashCadena(vehiculoId) % 20);
 }
 
 export interface ProximaReservacionMapa {
@@ -106,12 +73,11 @@ export interface DatosMapa {
 
 export async function obtenerDatosMapa(): Promise<DatosMapa> {
   const ahora = new Date();
-  const [vehiculosFlota, reservaciones, solicitudesActivas, usuarios, lecturasGPS] = await Promise.all([
+  const [vehiculosFlota, reservaciones, solicitudesActivas, usuarios] = await Promise.all([
     db.vehiculos.where("modalidad").anyOf(["POOL", "ASIGNADO"]).toArray(),
     db.reservaciones.toArray(),
     db.solicitudes.where("estadoSolicitud").anyOf(ESTADOS_SOLICITUD_ACTIVA as string[]).toArray(),
     db.usuarios.toArray(),
-    db.ubicacionesGPS.toArray(),
   ]);
 
   const nombrePorUsuario = new Map(usuarios.map((u) => [u.id, u.nombreCompleto]));
@@ -129,18 +95,14 @@ export async function obtenerDatosMapa(): Promise<DatosMapa> {
     if (s) solicitudPorId.set(s.id, s);
   }
 
-  const ultimaLecturaPorVehiculo = new Map<string, string>();
-  for (const lectura of lecturasGPS) {
-    const actual = ultimaLecturaPorVehiculo.get(lectura.vehiculoId);
-    if (!actual || lectura.timestampLectura > actual) {
-      ultimaLecturaPorVehiculo.set(lectura.vehiculoId, lectura.timestampLectura);
-    }
-  }
+  const posicionesPorVehiculo = await proveedorGPS.obtenerUltimasPosiciones(
+    vehiculosFlota.map((v) => ({ id: v.id, territorioId: v.territorioId }))
+  );
 
   const vehiculosMapa: VehiculoMapa[] = vehiculosFlota
     .map((vehiculo): VehiculoMapa | null => {
-      const posicion = simularPosicionVehiculo(vehiculo.territorioId, vehiculo.id);
-      if (!posicion) return null;
+      const lectura = posicionesPorVehiculo.get(vehiculo.id);
+      if (!lectura) return null;
 
       const reservacionesVehiculo = reservacionesPorVehiculo.get(vehiculo.id) ?? [];
       const reservacionEnCurso = reservacionesVehiculo.find((r) => r.estadoReservacion === "EN_CURSO");
@@ -159,16 +121,14 @@ export async function obtenerDatosMapa(): Promise<DatosMapa> {
           }
         : null;
 
-      const lecturaReal = ultimaLecturaPorVehiculo.get(vehiculo.id);
-
       return {
         vehiculo,
         territorioNombre: nombreTerritorio(vehiculo.territorioId),
         estadoMapa: calcularEstadoMapa(vehiculo, ahora),
-        posicion,
+        posicion: { latitud: lectura.latitud, longitud: lectura.longitud },
         conductorActualNombre,
-        ultimaActualizacion: lecturaReal ?? new Date(ahora.getTime() - minutosSimuladosDesdeActualizacion(vehiculo.id) * 60 * 1000).toISOString(),
-        actualizacionEsSimulada: !lecturaReal,
+        ultimaActualizacion: lectura.timestampLectura,
+        actualizacionEsSimulada: !lectura.esLecturaAlmacenada,
         proximaReservacion,
       };
     })
