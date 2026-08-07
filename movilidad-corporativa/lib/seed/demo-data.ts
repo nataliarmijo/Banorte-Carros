@@ -78,14 +78,14 @@ export const demoUsuarios: Usuario[] = [
 ];
 
 export const demoVehiculos: Vehiculo[] = [
-  { ...createBaseEntity("veh-1", "user-admin"), placa: "ABC-123", marcaModelo: "Toyota Corolla", tipoVehiculo: "Sedán", modalidad: "POOL", territorioId: "territorio-cdmx", capacidadPasajeros: 4, combustibleTipo: "Gasolina", kilometrajeActual: 18250, rendimientoKmPorLitro: 14.8, estadoOperativo: "DISPONIBLE", disponibilidadActual: true, costoPorKm: 2.8, factorEmisionId: "factor-pool" },
-  { ...createBaseEntity("veh-2", "user-admin"), placa: "DEF-456", marcaModelo: "Honda HR-V", tipoVehiculo: "SUV", modalidad: "ASIGNADO", territorioId: "territorio-guadalajara", capacidadPasajeros: 5, combustibleTipo: "Híbrido", kilometrajeActual: 22100, rendimientoKmPorLitro: 16.2, estadoOperativo: "OCUPADO", disponibilidadActual: false, costoPorKm: 3.2, factorEmisionId: "factor-asignado" },
-  { ...createBaseEntity("veh-3", "user-admin"), placa: "GHI-789", marcaModelo: "Nissan Versa", tipoVehiculo: "Sedán", modalidad: "POOL", territorioId: "territorio-monterrey", capacidadPasajeros: 4, combustibleTipo: "Gasolina", kilometrajeActual: 31500, rendimientoKmPorLitro: 13.5, estadoOperativo: "EN_MANTENIMIENTO", disponibilidadActual: false, costoPorKm: 2.6, factorEmisionId: "factor-pool" },
-  { ...createBaseEntity("veh-4", "user-admin"), placa: "JKL-012", marcaModelo: "Tesla Model 3", tipoVehiculo: "Eléctrico", modalidad: "UBER", territorioId: "territorio-puebla", capacidadPasajeros: 4, combustibleTipo: "Eléctrico", kilometrajeActual: 6400, rendimientoKmPorLitro: 0, estadoOperativo: "DISPONIBLE", disponibilidadActual: true, costoPorKm: 3.9, factorEmisionId: "factor-uber" },
-  { ...createBaseEntity("veh-5", "user-admin"), placa: "MNO-345", marcaModelo: "Chevrolet Equinox", tipoVehiculo: "SUV", modalidad: "ASIGNADO", territorioId: "territorio-queretaro", capacidadPasajeros: 5, combustibleTipo: "Diesel", kilometrajeActual: 27800, rendimientoKmPorLitro: 12.4, estadoOperativo: "DISPONIBLE", disponibilidadActual: true, costoPorKm: 3.1, factorEmisionId: "factor-asignado" },
-  { ...createBaseEntity("veh-6", "user-admin"), placa: "PQR-678", marcaModelo: "Kia Rio", tipoVehiculo: "Sedán", modalidad: "POOL", territorioId: "territorio-merida", capacidadPasajeros: 4, combustibleTipo: "Gasolina", kilometrajeActual: 19230, rendimientoKmPorLitro: 14.1, estadoOperativo: "DISPONIBLE", disponibilidadActual: true, costoPorKm: 2.7, factorEmisionId: "factor-pool" },
-  { ...createBaseEntity("veh-7", "user-admin"), placa: "STU-901", marcaModelo: "Volkswagen Jetta", tipoVehiculo: "Sedán", modalidad: "ASIGNADO", territorioId: "territorio-cdmx", capacidadPasajeros: 4, combustibleTipo: "Gasolina", kilometrajeActual: 24600, rendimientoKmPorLitro: 12.9, estadoOperativo: "DISPONIBLE", disponibilidadActual: true, costoPorKm: 3.1, factorEmisionId: "factor-asignado" },
-  { ...createBaseEntity("veh-8", "user-admin"), placa: "VWX-234", marcaModelo: "Toyota Corolla", tipoVehiculo: "Sedán", modalidad: "POOL", territorioId: "territorio-cdmx", capacidadPasajeros: 4, combustibleTipo: "Gasolina", kilometrajeActual: 9800, rendimientoKmPorLitro: 15.1, estadoOperativo: "DISPONIBLE", disponibilidadActual: true, costoPorKm: 2.7, factorEmisionId: "factor-pool" },
+  { ...createBaseEntity("veh-1", "user-admin"), placa: "ABC-123", marca: "Toyota", modelo: "Corolla", anio: 2022, tipoVehiculo: "Sedán", modalidad: "POOL", territorioId: "territorio-cdmx", ubicacion: "Estacionamiento Torre Banorte, CDMX", capacidadPasajeros: 4, combustibleTipo: "Gasolina", kilometrajeActual: 18250, rendimientoKmPorLitro: 14.8, estadoOperativo: "DISPONIBLE", disponibilidadActual: true, costoPorKm: 2.8, factorEmisionId: "factor-pool", proximaVerificacionFecha: "2026-11-15" },
+  { ...createBaseEntity("veh-2", "user-admin"), placa: "DEF-456", marca: "Honda", modelo: "HR-V", anio: 2023, tipoVehiculo: "SUV", modalidad: "ASIGNADO", territorioId: "territorio-guadalajara", ubicacion: "Depósito Guadalajara Centro", capacidadPasajeros: 5, combustibleTipo: "Híbrido", kilometrajeActual: 22100, rendimientoKmPorLitro: 16.2, estadoOperativo: "OCUPADO", disponibilidadActual: false, costoPorKm: 3.2, factorEmisionId: "factor-asignado", usuarioAsignadoId: "user-3", proximaVerificacionFecha: "2026-09-30" },
+  { ...createBaseEntity("veh-3", "user-admin"), placa: "GHI-789", marca: "Nissan", modelo: "Versa", anio: 2020, tipoVehiculo: "Sedán", modalidad: "POOL", territorioId: "territorio-monterrey", ubicacion: "Taller Monterrey Norte", capacidadPasajeros: 4, combustibleTipo: "Gasolina", kilometrajeActual: 31500, rendimientoKmPorLitro: 13.5, estadoOperativo: "EN_MANTENIMIENTO", disponibilidadActual: false, costoPorKm: 2.6, factorEmisionId: "factor-pool", proximaVerificacionFecha: "2026-08-10" },
+  { ...createBaseEntity("veh-4", "user-admin"), placa: "JKL-012", marca: "Tesla", modelo: "Model 3", anio: 2024, tipoVehiculo: "Eléctrico", modalidad: "UBER", territorioId: "territorio-puebla", ubicacion: "N/A (servicio externo)", capacidadPasajeros: 4, combustibleTipo: "Eléctrico", kilometrajeActual: 6400, rendimientoKmPorLitro: 0, estadoOperativo: "DISPONIBLE", disponibilidadActual: true, costoPorKm: 3.9, factorEmisionId: "factor-uber" },
+  { ...createBaseEntity("veh-5", "user-admin"), placa: "MNO-345", marca: "Chevrolet", modelo: "Equinox", anio: 2021, tipoVehiculo: "SUV", modalidad: "ASIGNADO", territorioId: "territorio-queretaro", ubicacion: "Estacionamiento Querétaro", capacidadPasajeros: 5, combustibleTipo: "Diesel", kilometrajeActual: 27800, rendimientoKmPorLitro: 12.4, estadoOperativo: "DISPONIBLE", disponibilidadActual: true, costoPorKm: 3.1, factorEmisionId: "factor-asignado", usuarioAsignadoId: "user-6", proximaVerificacionFecha: "2027-01-20" },
+  { ...createBaseEntity("veh-6", "user-admin"), placa: "PQR-678", marca: "Kia", modelo: "Rio", anio: 2022, tipoVehiculo: "Sedán", modalidad: "POOL", territorioId: "territorio-merida", ubicacion: "Depósito Mérida", capacidadPasajeros: 4, combustibleTipo: "Gasolina", kilometrajeActual: 19230, rendimientoKmPorLitro: 14.1, estadoOperativo: "DISPONIBLE", disponibilidadActual: true, costoPorKm: 2.7, factorEmisionId: "factor-pool", proximaVerificacionFecha: "2026-12-05" },
+  { ...createBaseEntity("veh-7", "user-admin"), placa: "STU-901", marca: "Volkswagen", modelo: "Jetta", anio: 2023, tipoVehiculo: "Sedán", modalidad: "ASIGNADO", territorioId: "territorio-cdmx", ubicacion: "Estacionamiento Torre Banorte, CDMX", capacidadPasajeros: 4, combustibleTipo: "Gasolina", kilometrajeActual: 24600, rendimientoKmPorLitro: 12.9, estadoOperativo: "DISPONIBLE", disponibilidadActual: true, costoPorKm: 3.1, factorEmisionId: "factor-asignado", proximaVerificacionFecha: "2026-10-18" },
+  { ...createBaseEntity("veh-8", "user-admin"), placa: "VWX-234", marca: "Toyota", modelo: "Corolla", anio: 2024, tipoVehiculo: "Sedán", modalidad: "POOL", territorioId: "territorio-cdmx", ubicacion: "Estacionamiento Torre Banorte, CDMX", capacidadPasajeros: 4, combustibleTipo: "Gasolina", kilometrajeActual: 9800, rendimientoKmPorLitro: 15.1, estadoOperativo: "DISPONIBLE", disponibilidadActual: true, costoPorKm: 2.7, factorEmisionId: "factor-pool", proximaVerificacionFecha: "2027-02-01" },
 ];
 
 export const demoSolicitudes: Solicitud[] = [
@@ -131,7 +131,26 @@ export const demoCheckIns: CheckIn[] = [
   },
 ];
 export const demoCheckOuts: CheckOut[] = [
-  { ...createBaseEntity("checkout-1", "user-1", "COMPLETADA"), reservacionId: "res-1", usuarioId: "user-1", fechaHoraCheckOut: "2025-01-15T18:00:00-06:00", kilometrajeFinal: 18450, combustibleRestante: 45, observaciones: "Fin de servicio" },
+  {
+    ...createBaseEntity("checkout-1", "user-1", "COMPLETADA"),
+    reservacionId: "res-1",
+    usuarioId: "user-1",
+    fechaHoraCheckOut: "2025-01-15T18:00:00-06:00",
+    kilometrajeFinal: 18450,
+    combustibleRestante: 45,
+    fotos: [],
+    estadoVehiculo: "BUENO",
+    llavesDevueltas: true,
+    kilometrosRecorridos: 200,
+    duracionRealMinutos: 570,
+    retrasoMinutos: 0,
+    diferenciaCombustiblePorcentaje: 29,
+    fueraDeHorarioNoAutorizado: false,
+    costoReal: 290,
+    emisionesRealesGramos: 36000,
+    incidenciasCreadasIds: [],
+    observaciones: "Fin de servicio",
+  },
 ];
 export const demoIncidencias: Incidencia[] = [
   { ...createBaseEntity("inc-1", "user-1", "ACTIVO"), reservacionId: "res-2", vehiculoId: "veh-2", usuarioReportaId: "user-4", tipoIncidencia: "FALLA_MECANICA", severidad: "ALTA", descripcion: "El vehículo presentó un problema en el sistema de frenos", estadoIncidencia: "ABIERTA" },

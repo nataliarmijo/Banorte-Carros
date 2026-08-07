@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import type { EstadoSolicitud } from "@/lib/models";
 import { ESTADO_ESTILOS, ESTADO_ICONOS, ESTADO_LABELS } from "@/lib/ui/estado-solicitud";
 
+/** Insignia de EstadoSolicitud, consistente en /reservaciones y /operacion. */
 export function EstadoBadge({ estado, className }: { estado: EstadoSolicitud; className?: string }) {
   const Icono = ESTADO_ICONOS[estado];
   return (

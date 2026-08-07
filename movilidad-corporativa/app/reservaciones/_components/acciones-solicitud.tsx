@@ -44,7 +44,7 @@ export function AccionesSolicitud({
     Boolean(item.reservacion) &&
     !item.reservacion!.vehiculoId.startsWith("uber-") &&
     esFechaSalidaVigente(item.reservacion!.fechaInicio);
-  const puedeCheckOut = solicitud.estadoSolicitud === "EN_CURSO";
+  const puedeCheckOut = esDueño && solicitud.estadoSolicitud === "EN_CURSO" && Boolean(item.reservacion);
 
   async function confirmarCancelacion() {
     setCancelando(true);
@@ -78,7 +78,7 @@ export function AccionesSolicitud({
         <Button
           size={compacto ? "sm" : "default"}
           variant="outline"
-          render={<Link href={`/check-out?reservacion=${solicitud.id}`} />}
+          render={<Link href={`/check-out?reservacion=${item.reservacion!.id}`} />}
           nativeButton={false}
         >
           <LogOut className="h-3.5 w-3.5" /> Check-out

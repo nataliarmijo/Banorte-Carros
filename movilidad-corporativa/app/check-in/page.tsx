@@ -17,7 +17,7 @@ import { obtenerContextoCheckIn, registrarCheckIn, type ContextoCheckIn } from "
 import { validarDatosCheckIn } from "@/lib/services/servicio-checkin";
 import { CHECKIN_CONFIG } from "@/lib/config/checkin";
 import { esResultadoSinDatos } from "@/lib/services/types";
-import { FotosUploader } from "./_components/fotos-uploader";
+import { FotosUploader } from "@/components/fotos-uploader";
 import { FirmaCanvas } from "./_components/firma-canvas";
 
 const PRESETS_COMBUSTIBLE = [0, 25, 50, 75, 100];
@@ -187,7 +187,7 @@ function CheckInContent() {
                 <div>
                   <dt className="text-xs text-slate-500">Modelo</dt>
                   <dd className="font-medium text-slate-900">
-                    {contexto.vehiculo.marcaModelo} · {contexto.vehiculo.tipoVehiculo}
+                    {contexto.vehiculo.marca} {contexto.vehiculo.modelo} · {contexto.vehiculo.tipoVehiculo}
                   </dd>
                 </div>
                 <div>

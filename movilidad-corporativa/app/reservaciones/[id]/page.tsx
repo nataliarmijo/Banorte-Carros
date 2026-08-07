@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { AlertTriangle, ArrowLeft, Ban, CheckCircle2, Circle, PlayCircle } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Ban, CheckCircle2, Circle, Gauge, Leaf, PlayCircle } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { ErrorState, LoadingState } from "@/components/states";
@@ -17,7 +17,7 @@ import {
 } from "@/lib/adapters/reservaciones";
 import { esResultadoSinDatos } from "@/lib/services/types";
 import { MEDIO_LABELS } from "@/lib/ui/estado-solicitud";
-import { EstadoBadge } from "../_components/estado-badge";
+import { EstadoBadge } from "@/components/estado-badge";
 
 function formatearFecha(fechaISO: string | null): string {
   if (!fechaISO) return "Pendiente";
@@ -163,6 +163,89 @@ export default function DetalleReservacionPage() {
                 ))}
               </ol>
             </section>
+
+            {detalle.checkOut && (
+              <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <Gauge className="h-4 w-4 text-slate-500" />
+                  <h3 className="text-base font-semibold text-slate-900">Resumen real del viaje</h3>
+                </div>
+                <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                  <div>
+                    <dt className="text-xs text-slate-500">Km recorridos</dt>
+                    <dd className="font-medium text-slate-900">{detalle.checkOut.kilometrosRecorridos} km</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-slate-500">Duración real</dt>
+                    <dd className="font-medium text-slate-900">
+                      {Math.floor(detalle.checkOut.duracionRealMinutos / 60)}h {detalle.checkOut.duracionRealMinutos % 60}min
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-slate-500">Retraso frente al regreso planeado</dt>
+                    <dd className="font-medium text-slate-900">
+                      {detalle.checkOut.retrasoMinutos > 0 ? `${detalle.checkOut.retrasoMinutos} min` : "Sin retraso"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-slate-500">Combustible consumido vs. esperado</dt>
+                    <dd className="font-medium text-slate-900">
+                      {detalle.checkOut.diferenciaCombustiblePorcentaje > 0 ? "+" : ""}
+                      {detalle.checkOut.diferenciaCombustiblePorcentaje} pts
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-slate-500">Costo real vs. estimado</dt>
+                    <dd className="font-medium text-slate-900">
+                      ${Math.round(detalle.checkOut.costoReal).toLocaleString("es-MX")} MXN
+                      {typeof detalle.solicitud.costoEstimado === "number" && (
+                        <span className="text-slate-500"> (est. ${Math.round(detalle.solicitud.costoEstimado).toLocaleString("es-MX")})</span>
+                      )}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="flex items-center gap-1 text-xs text-slate-500">
+                      <Leaf className="h-3 w-3" /> Emisiones reales
+                    </dt>
+                    <dd className="font-medium text-slate-900">{(detalle.checkOut.emisionesRealesGramos / 1000).toFixed(1)} kg CO₂</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-slate-500">Estado del vehículo al devolver</dt>
+                    <dd className="font-medium text-slate-900">
+                      {detalle.checkOut.estadoVehiculo === "BUENO"
+                        ? "Bueno"
+                        : detalle.checkOut.estadoVehiculo === "CON_OBSERVACIONES"
+                          ? "Con observaciones"
+                          : "Con daños"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-slate-500">Llaves devueltas</dt>
+                    <dd className="font-medium text-slate-900">{detalle.checkOut.llavesDevueltas ? "Sí" : "No"}</dd>
+                  </div>
+                </dl>
+
+                {detalle.checkOut.danosDescripcion && (
+                  <div className="mt-4 flex items-start gap-2 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                    <p>Daños reportados: {detalle.checkOut.danosDescripcion}</p>
+                  </div>
+                )}
+
+                {detalle.checkOut.fueraDeHorarioNoAutorizado && (
+                  <div className="mt-3 flex items-start gap-2 rounded-2xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                    <p>El uso ocurrió fuera de horario laboral o en fin de semana sin autorización previa.</p>
+                  </div>
+                )}
+
+                {detalle.checkOut.incidenciasCreadasIds.length > 0 && (
+                  <p className="mt-3 text-xs text-slate-500">
+                    Se generaron {detalle.checkOut.incidenciasCreadasIds.length} incidencia(s) automáticamente a partir de este check-out.
+                  </p>
+                )}
+              </section>
+            )}
 
             <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
               <h3 className="text-base font-semibold text-slate-900">Historial de decisiones</h3>

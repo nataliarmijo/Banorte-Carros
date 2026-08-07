@@ -26,7 +26,7 @@ async function resolverVehiculoNombre(reservacion: Reservacion | null): Promise<
   if (!reservacion) return null;
   if (reservacion.vehiculoId.startsWith("uber-")) return "Uber (servicio externo)";
   const vehiculo = await db.vehiculos.get(reservacion.vehiculoId);
-  return vehiculo ? `${vehiculo.marcaModelo} (${vehiculo.placa})` : null;
+  return vehiculo ? `${vehiculo.marca} ${vehiculo.modelo} (${vehiculo.placa})` : null;
 }
 
 async function construirListItems(solicitudes: Solicitud[]): Promise<SolicitudListItem[]> {
@@ -77,6 +77,8 @@ export interface DetalleSolicitud {
   territorioNombre: string;
   timeline: HitoTimeline[];
   historial: DecisionHistorialItem[];
+  /** Cifras reales del viaje (check-out), cuando ya se completó. */
+  checkOut: CheckOut | null;
 }
 
 function construirTimeline(
@@ -250,6 +252,7 @@ export async function obtenerDetalleSolicitud(solicitudId: string): Promise<Deta
     territorioNombre: territorio?.nombre ?? solicitud.territorioId,
     timeline,
     historial,
+    checkOut,
   };
 }
 

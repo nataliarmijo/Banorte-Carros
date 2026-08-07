@@ -16,7 +16,7 @@ import { esResultadoSinDatos } from "@/lib/services/types";
 import { MEDIO_LABELS } from "@/lib/ui/estado-solicitud";
 import { PARAMS_CONFIG } from "@/lib/config/params";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { EstadoBadge } from "./_components/estado-badge";
+import { EstadoBadge } from "@/components/estado-badge";
 import { AccionesSolicitud } from "./_components/acciones-solicitud";
 import { FiltrosBar, type VistaLista } from "./_components/filtros-bar";
 import { aplicarFiltros, FILTROS_INICIALES, type FiltrosReservaciones } from "./_lib/filtros";

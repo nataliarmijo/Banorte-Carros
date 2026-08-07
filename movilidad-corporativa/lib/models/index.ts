@@ -73,10 +73,14 @@ export interface Territorio extends BaseEntity {
 
 export interface Vehiculo extends BaseEntity {
   placa: string;
-  marcaModelo: string;
+  marca: string;
+  modelo: string;
+  anio: number;
   tipoVehiculo: string;
   modalidad: ModalidadVehiculo;
   territorioId: string;
+  /** Ubicación física específica dentro del territorio (depósito, estacionamiento, taller). */
+  ubicacion: string;
   capacidadPasajeros: number;
   combustibleTipo: string;
   kilometrajeActual: number;
@@ -85,6 +89,10 @@ export interface Vehiculo extends BaseEntity {
   disponibilidadActual: boolean;
   costoPorKm: number;
   factorEmisionId: string;
+  /** Colaborador titular del vehículo; solo aplica cuando modalidad es "ASIGNADO". */
+  usuarioAsignadoId?: string;
+  /** Próxima fecha de verificación vehicular o vencimiento de seguro. */
+  proximaVerificacionFecha?: string;
 }
 
 export interface Solicitud extends BaseEntity {
@@ -149,12 +157,34 @@ export interface CheckIn extends BaseEntity {
   observaciones?: string;
 }
 
+export type EstadoVehiculoDevolucion = "BUENO" | "CON_OBSERVACIONES" | "CON_DANOS";
+
 export interface CheckOut extends BaseEntity {
   reservacionId: string;
   usuarioId: string;
   fechaHoraCheckOut: string;
   kilometrajeFinal: number;
   combustibleRestante: number;
+  /** Referencias simuladas (data URLs) de las fotografías del vehículo al devolverlo; almacenamiento simulado. */
+  fotos: string[];
+  estadoVehiculo: EstadoVehiculoDevolucion;
+  llavesDevueltas: boolean;
+  /** Descripción de daños; obligatoria cuando estadoVehiculo es "CON_DANOS". */
+  danosDescripcion?: string;
+  kilometrosRecorridos: number;
+  duracionRealMinutos: number;
+  /** Minutos de retraso frente a la hora de regreso planeada (0 si no hubo retraso). */
+  retrasoMinutos: number;
+  /** Diferencia (puntos porcentuales de tanque) entre el combustible consumido real y el esperado; positivo = consumió más de lo esperado. */
+  diferenciaCombustiblePorcentaje: number;
+  /** El uso ocurrió fuera de horario laboral o en fin de semana sin que la aprobación original lo autorizara. */
+  fueraDeHorarioNoAutorizado: boolean;
+  /** Costo real estimado del viaje (servicioCostos, con km/duración reales). */
+  costoReal: number;
+  /** Emisiones reales estimadas (servicioEmisiones, con km reales). */
+  emisionesRealesGramos: number;
+  /** Incidencias creadas automáticamente a partir de este check-out (daños y/o uso fuera de horario no autorizado). */
+  incidenciasCreadasIds: string[];
   observaciones?: string;
 }
 

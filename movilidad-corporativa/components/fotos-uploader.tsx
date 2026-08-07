@@ -17,7 +17,7 @@ function leerComoDataUrl(file: File): Promise<string> {
   });
 }
 
-/** Simulación de carga de archivos: convierte las fotos a data URLs y las guarda localmente (no sube a un servidor). */
+/** Simulación de carga de archivos: convierte las fotos a data URLs y las guarda localmente (no sube a un servidor). Usado en check-in y check-out. */
 export function FotosUploader({ fotos, onFotosChange }: FotosUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 

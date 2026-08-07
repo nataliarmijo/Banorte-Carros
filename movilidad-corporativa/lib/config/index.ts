@@ -8,6 +8,7 @@ export * from "./costos";
 export * from "./emisiones";
 export * from "./asignacion";
 export * from "./checkin";
+export * from "./checkout";
 
 import { validarPesosAsignacion } from "./asignacion";
 

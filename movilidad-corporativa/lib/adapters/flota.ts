@@ -104,7 +104,7 @@ export async function construirCandidatosFlota(territorioId: string): Promise<Ca
 
       return {
         id: vehiculo.id,
-        nombre: `${vehiculo.marcaModelo} (${vehiculo.placa})`,
+        nombre: `${vehiculo.marca} ${vehiculo.modelo} (${vehiculo.placa})`,
         tipoVehiculo: mapTipoVehiculo(vehiculo),
         territorioId: vehiculo.territorioId,
         capacidadPasajeros: vehiculo.capacidadPasajeros,
