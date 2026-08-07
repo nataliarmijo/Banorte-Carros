@@ -29,7 +29,17 @@ export type EstadoSolicitud =
   | "EN_CURSO"
   | "COMPLETADA"
   | "CANCELADA";
-export type EstadoIncidencia = "ABIERTA" | "EN_PROCESO" | "RESUELTA" | "CRITICA";
+export type EstadoIncidencia = "ABIERTA" | "EN_PROCESO" | "RESUELTA" | "CERRADA";
+export type TipoIncidencia =
+  | "DANOS"
+  | "ACCIDENTE"
+  | "RETRASO"
+  | "DIFERENCIA_COMBUSTIBLE"
+  | "USO_FUERA_DE_HORARIO"
+  | "FIN_DE_SEMANA_NO_AUTORIZADO"
+  | "DESVIACION_RUTA"
+  | "DOCUMENTACION_VENCIDA"
+  | "MANTENIMIENTO_VENCIDO";
 export type NivelPrioridad = "BAJA" | "MEDIA" | "ALTA" | "CRITICA";
 export type DecisionAprobacion = "PENDIENTE" | "APROBADA" | "RECHAZADA";
 
@@ -57,6 +67,8 @@ export interface Usuario extends BaseEntity {
   rol: RolNombre;
   territorioId: string;
   telefono?: string;
+  /** Área o departamento del colaborador; usado como dimensión de filtro en /analitica. */
+  area?: string;
 }
 
 export interface Rol extends BaseEntity {
@@ -188,14 +200,26 @@ export interface CheckOut extends BaseEntity {
   observaciones?: string;
 }
 
+export interface EntradaBitacora {
+  id: string;
+  fecha: string;
+  usuarioId: string;
+  comentario: string;
+}
+
 export interface Incidencia extends BaseEntity {
-  reservacionId: string;
+  /** Reservación relacionada, si aplica (p. ej. documentación/mantenimiento vencidos no están ligados a un viaje puntual). */
+  reservacionId?: string;
   vehiculoId: string;
   usuarioReportaId: string;
-  tipoIncidencia: string;
+  tipoIncidencia: TipoIncidencia;
   severidad: NivelPrioridad;
   descripcion: string;
-  evidenciaUrl?: string;
+  /** Referencias simuladas (data URLs) de evidencia fotográfica; almacenamiento simulado. */
+  fotos: string[];
+  responsableId?: string;
+  fechaCompromiso?: string;
+  bitacora: EntradaBitacora[];
   estadoIncidencia: EstadoIncidencia;
 }
 

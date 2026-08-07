@@ -23,6 +23,7 @@ import {
 } from "@/lib/services/servicio-flota";
 import { crearResultadoSinDatos } from "@/lib/services/types";
 import type { ResultadoSinDatos } from "@/lib/services/types";
+import { esIncidenciaAbierta } from "@/lib/ui/incidencias";
 
 const SEMANAS_TENDENCIA = 6;
 
@@ -80,7 +81,7 @@ export async function listarCatalogoVehiculos(): Promise<VehiculoCatalogoItem[]>
   const ventanaMs = ASIGNACION_CONFIG.utilizacion.ventanaDias * 24 * 60 * 60 * 1000;
 
   return vehiculos.map((vehiculo) => {
-    const incidenciasAbiertas = incidencias.filter((i) => i.vehiculoId === vehiculo.id && i.estadoIncidencia !== "RESUELTA").length;
+    const incidenciasAbiertas = incidencias.filter((i) => i.vehiculoId === vehiculo.id && esIncidenciaAbierta(i.estadoIncidencia)).length;
     const viajesRecientes = reservaciones.filter(
       (r) => r.vehiculoId === vehiculo.id && ahora.getTime() - new Date(r.fechaInicio).getTime() <= ventanaMs
     ).length;

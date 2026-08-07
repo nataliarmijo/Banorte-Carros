@@ -23,6 +23,7 @@ import type {
   Incidencia,
   Reservacion,
   Solicitud,
+  TipoIncidencia,
   Vehiculo,
 } from "@/lib/models";
 import { PARAMS_CONFIG } from "@/lib/config/params";
@@ -37,6 +38,7 @@ import {
   calcularKilometrosRecorridos,
   calcularRetrasoMinutos,
   estabaAutorizadoFueraDeHorario,
+  esUsoEnFinDeSemana,
   esUsoFueraDeHorario,
   validarDatosCheckOut,
 } from "@/lib/services/servicio-checkout";
@@ -132,7 +134,7 @@ async function crearIncidenciaAutomatica(params: {
   reservacion: Reservacion;
   solicitud: Solicitud;
   usuarioId: string;
-  tipoIncidencia: string;
+  tipoIncidencia: TipoIncidencia;
   severidad: Incidencia["severidad"];
   descripcion: string;
   ahora: string;
@@ -149,6 +151,15 @@ async function crearIncidenciaAutomatica(params: {
     tipoIncidencia: params.tipoIncidencia,
     severidad: params.severidad,
     descripcion: params.descripcion,
+    fotos: [],
+    bitacora: [
+      {
+        id: crypto.randomUUID(),
+        fecha: params.ahora,
+        usuarioId: params.usuarioId,
+        comentario: `Generada automáticamente al hacer check-out del folio ${params.solicitud.folio}: ${params.descripcion}`,
+      },
+    ],
     estadoIncidencia: "ABIERTA",
   };
   return incidenciasRepository.create(incidencia);
@@ -218,7 +229,7 @@ export async function registrarCheckOut(input: RegistrarCheckOutInput): Promise<
       reservacion,
       solicitud,
       usuarioId: input.usuarioId,
-      tipoIncidencia: "DANOS_REPORTADOS",
+      tipoIncidencia: "DANOS",
       severidad: CHECKOUT_CONFIG.severidad.danosReportados,
       descripcion: `Daños reportados al devolver el vehículo del folio ${solicitud.folio}: ${input.danosDescripcion}`,
       ahora: ahoraISO,
@@ -227,13 +238,16 @@ export async function registrarCheckOut(input: RegistrarCheckOutInput): Promise<
   }
 
   if (fueraDeHorarioNoAutorizado) {
+    const fueFinDeSemana = esUsoEnFinDeSemana(checkIn.fechaHoraCheckIn, ahoraISO);
     const incidencia = await crearIncidenciaAutomatica({
       reservacion,
       solicitud,
       usuarioId: input.usuarioId,
-      tipoIncidencia: "USO_FUERA_DE_HORARIO_NO_AUTORIZADO",
+      tipoIncidencia: fueFinDeSemana ? "FIN_DE_SEMANA_NO_AUTORIZADO" : "USO_FUERA_DE_HORARIO",
       severidad: CHECKOUT_CONFIG.severidad.usoFueraDeHorarioNoAutorizado,
-      descripcion: `El viaje del folio ${solicitud.folio} se realizó fuera de horario laboral o en fin de semana sin estar autorizado en la aprobación original.`,
+      descripcion: fueFinDeSemana
+        ? `El viaje del folio ${solicitud.folio} se realizó en fin de semana sin estar autorizado en la aprobación original.`
+        : `El viaje del folio ${solicitud.folio} se realizó fuera del horario laboral sin estar autorizado en la aprobación original.`,
       ahora: ahoraISO,
     });
     incidenciasCreadasIds.push(incidencia.id);

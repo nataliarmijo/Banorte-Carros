@@ -7,6 +7,8 @@ import {
   calcularRetrasoMinutos,
   estabaAutorizadoFueraDeHorario,
   estaFueraDeHorarioLaboral,
+  esFinDeSemana,
+  esUsoEnFinDeSemana,
   esUsoFueraDeHorario,
   validarDatosCheckOut,
   type DatosCheckOut,
@@ -139,6 +141,28 @@ describe("estaFueraDeHorarioLaboral", () => {
 
   it("no es fuera de horario en día y hora laboral", () => {
     expect(estaFueraDeHorarioLaboral(new Date("2026-08-10T10:00:00"))).toBe(false);
+  });
+});
+
+describe("esFinDeSemana", () => {
+  it("es true en sábado y domingo", () => {
+    expect(esFinDeSemana(new Date("2026-08-08T10:00:00"))).toBe(true); // sábado
+    expect(esFinDeSemana(new Date("2026-08-09T10:00:00"))).toBe(true); // domingo
+  });
+
+  it("es false entre semana, incluso fuera del horario laboral", () => {
+    expect(esFinDeSemana(new Date("2026-08-10T22:00:00"))).toBe(false); // lunes noche
+  });
+});
+
+describe("esUsoEnFinDeSemana", () => {
+  it("es true si el check-in o el check-out cayeron en fin de semana", () => {
+    expect(esUsoEnFinDeSemana("2026-08-08T10:00:00", "2026-08-10T10:00:00")).toBe(true);
+    expect(esUsoEnFinDeSemana("2026-08-10T10:00:00", "2026-08-08T10:00:00")).toBe(true);
+  });
+
+  it("es false cuando el uso fue fuera de horario mismo entre semana", () => {
+    expect(esUsoEnFinDeSemana("2026-08-10T06:00:00", "2026-08-10T22:00:00")).toBe(false);
   });
 });
 

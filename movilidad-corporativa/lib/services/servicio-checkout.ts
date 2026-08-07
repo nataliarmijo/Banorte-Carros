@@ -94,13 +94,18 @@ export function calcularDiferenciaCombustiblePorcentaje(
   return Math.round((consumidoReal - consumidoEsperado) * 10) / 10;
 }
 
+/** True si la fecha cae en sábado o domingo. */
+export function esFinDeSemana(fecha: Date): boolean {
+  const diaSemana = fecha.getDay();
+  return diaSemana === 0 || diaSemana === 6;
+}
+
 /** True si la fecha cae fuera del horario laboral configurado (fin de semana o fuera del rango de horas). */
 export function estaFueraDeHorarioLaboral(fecha: Date): boolean {
-  const diaSemana = fecha.getDay();
-  const esFinDeSemana = diaSemana === 0 || diaSemana === 6;
-  if (esFinDeSemana) return true;
+  if (esFinDeSemana(fecha)) return true;
 
   const { horaInicio, horaFin, diasLaborales } = PARAMS_CONFIG.horarioLaboral;
+  const diaSemana = fecha.getDay();
   const esDiaLaboral = (diasLaborales as readonly number[]).includes(diaSemana);
   const hora = fecha.getHours();
   const dentroDeHorario = esDiaLaboral && hora >= horaInicio && hora < horaFin;
@@ -110,6 +115,11 @@ export function estaFueraDeHorarioLaboral(fecha: Date): boolean {
 /** True si el check-in o el check-out ocurrieron fuera del horario laboral. */
 export function esUsoFueraDeHorario(fechaHoraCheckInISO: string, fechaHoraCheckOutISO: string): boolean {
   return estaFueraDeHorarioLaboral(new Date(fechaHoraCheckInISO)) || estaFueraDeHorarioLaboral(new Date(fechaHoraCheckOutISO));
+}
+
+/** True si el check-in o el check-out ocurrieron en fin de semana. */
+export function esUsoEnFinDeSemana(fechaHoraCheckInISO: string, fechaHoraCheckOutISO: string): boolean {
+  return esFinDeSemana(new Date(fechaHoraCheckInISO)) || esFinDeSemana(new Date(fechaHoraCheckOutISO));
 }
 
 /**
@@ -128,7 +138,9 @@ export const servicioCheckOut = {
   calcularDuracionRealMinutos,
   calcularRetrasoMinutos,
   calcularDiferenciaCombustiblePorcentaje,
+  esFinDeSemana,
   estaFueraDeHorarioLaboral,
   esUsoFueraDeHorario,
+  esUsoEnFinDeSemana,
   estabaAutorizadoFueraDeHorario,
 };

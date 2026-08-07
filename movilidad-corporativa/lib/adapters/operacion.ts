@@ -20,6 +20,7 @@ import {
 import { construirCandidatosFlota, type CandidatoFlota } from "@/lib/adapters/flota";
 import { esResultadoSinDatos } from "@/lib/services/types";
 import type { ResultadoSinDatos } from "@/lib/services/types";
+import { esIncidenciaAbierta } from "@/lib/ui/incidencias";
 
 /** Fecha calendario LOCAL (no UTC) en formato yyyy-MM-dd; consistente con un <input type="date">. */
 export function fechaLocalISO(fecha: Date): string {
@@ -187,11 +188,11 @@ export async function obtenerPanelOperativo(fecha?: string): Promise<PanelOperat
     };
   });
 
-  const incidenciasAbiertas = incidenciasTodas.filter((i) => i.estadoIncidencia !== "RESUELTA");
+  const incidenciasAbiertas = incidenciasTodas.filter((i) => esIncidenciaAbierta(i.estadoIncidencia));
   const solicitudPorReservacion = new Map(reservaciones.map((r) => [r.id, r.solicitudId]));
   const incidencias: IncidenciaOperativa[] = incidenciasAbiertas.map((incidencia) => {
     const vehiculo = vehiculoPorId.get(incidencia.vehiculoId) ?? null;
-    const solicitudId = solicitudPorReservacion.get(incidencia.reservacionId);
+    const solicitudId = incidencia.reservacionId ? solicitudPorReservacion.get(incidencia.reservacionId) : undefined;
     return {
       incidencia,
       vehiculo,

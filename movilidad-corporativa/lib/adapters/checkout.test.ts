@@ -212,7 +212,7 @@ describe("check-out digital", () => {
     expect(resultado.checkOut.incidenciasCreadasIds.length).toBe(resultado.resumen.fueraDeHorarioNoAutorizado ? 2 : 1);
 
     const incidencias = await Promise.all(resultado.checkOut.incidenciasCreadasIds.map((id) => db.incidencias.get(id)));
-    const incidenciaDanos = incidencias.find((i) => i?.tipoIncidencia === "DANOS_REPORTADOS");
+    const incidenciaDanos = incidencias.find((i) => i?.tipoIncidencia === "DANOS");
     expect(incidenciaDanos).toBeDefined();
     expect(incidenciaDanos?.severidad).toBe("ALTA");
     expect(incidenciaDanos?.descripcion).toContain("Rayón profundo");

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Menu, X, LayoutGrid, PlusCircle, CalendarDays, ShieldCheck, Bus, MapPinned, AlertTriangle, ChartColumn, Settings, MoonStar, ChevronLeft } from "lucide-react";
 import { useSessionStore, type RolActivo } from "@/lib/stores/session";
 import { RoleSelector } from "@/components/role-selector";
+import { AlertaIncidenciasCriticas } from "@/components/alerta-incidencias-criticas";
 
 type NavigationItem = {
   label: string;
@@ -151,7 +152,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <p className="text-sm font-medium text-slate-500">Panel operativo</p>
                 <h1 className="text-xl font-semibold text-slate-900">Bienvenido a Movilidad Corporativa</h1>
               </div>
-              <RoleSelector />
+              <div className="flex items-center gap-2">
+                <AlertaIncidenciasCriticas />
+                <RoleSelector />
+              </div>
             </div>
           </header>
 

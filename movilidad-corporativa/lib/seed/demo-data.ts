@@ -67,14 +67,14 @@ export const demoTerritorios: Territorio[] = [
 ];
 
 export const demoUsuarios: Usuario[] = [
-  { ...createBaseEntity("user-admin", "user-admin"), nombreCompleto: "María Torres", correoCorporativo: "maria.torres@banorte.com", empleadoId: "EMP-1000", rol: "ADMIN_FLOTA", territorioId: "territorio-cdmx", telefono: "5550000001" },
-  { ...createBaseEntity("user-1", "user-admin"), nombreCompleto: "Ana López", correoCorporativo: "ana.lopez@banorte.com", empleadoId: "EMP-1001", rol: "COLABORADOR", territorioId: "territorio-cdmx", telefono: "5550000002" },
-  { ...createBaseEntity("user-2", "user-admin"), nombreCompleto: "Luis Ramírez", correoCorporativo: "luis.ramirez@banorte.com", empleadoId: "EMP-1002", rol: "APROBADOR", territorioId: "territorio-cdmx", telefono: "5550000003" },
-  { ...createBaseEntity("user-3", "user-admin"), nombreCompleto: "Sofía Méndez", correoCorporativo: "sofia.mendez@banorte.com", empleadoId: "EMP-1003", rol: "APROBADOR", territorioId: "territorio-guadalajara", telefono: "5550000004" },
-  { ...createBaseEntity("user-4", "user-admin"), nombreCompleto: "Diego Ortega", correoCorporativo: "diego.ortega@banorte.com", empleadoId: "EMP-1004", rol: "COLABORADOR", territorioId: "territorio-monterrey", telefono: "5550000005" },
-  { ...createBaseEntity("user-5", "user-admin"), nombreCompleto: "Patricia Vega", correoCorporativo: "patricia.vega@banorte.com", empleadoId: "EMP-1005", rol: "COLABORADOR", territorioId: "territorio-puebla", telefono: "5550000006" },
-  { ...createBaseEntity("user-6", "user-admin"), nombreCompleto: "Eduardo Cruz", correoCorporativo: "eduardo.cruz@banorte.com", empleadoId: "EMP-1006", rol: "COLABORADOR", territorioId: "territorio-queretaro", telefono: "5550000007" },
-  { ...createBaseEntity("user-7", "user-admin"), nombreCompleto: "Karina Solís", correoCorporativo: "karina.solis@banorte.com", empleadoId: "EMP-1007", rol: "COLABORADOR", territorioId: "territorio-merida", telefono: "5550000008" },
+  { ...createBaseEntity("user-admin", "user-admin"), nombreCompleto: "María Torres", correoCorporativo: "maria.torres@banorte.com", empleadoId: "EMP-1000", rol: "ADMIN_FLOTA", territorioId: "territorio-cdmx", telefono: "5550000001", area: "Operaciones" },
+  { ...createBaseEntity("user-1", "user-admin"), nombreCompleto: "Ana López", correoCorporativo: "ana.lopez@banorte.com", empleadoId: "EMP-1001", rol: "COLABORADOR", territorioId: "territorio-cdmx", telefono: "5550000002", area: "Ventas" },
+  { ...createBaseEntity("user-2", "user-admin"), nombreCompleto: "Luis Ramírez", correoCorporativo: "luis.ramirez@banorte.com", empleadoId: "EMP-1002", rol: "APROBADOR", territorioId: "territorio-cdmx", telefono: "5550000003", area: "Finanzas" },
+  { ...createBaseEntity("user-3", "user-admin"), nombreCompleto: "Sofía Méndez", correoCorporativo: "sofia.mendez@banorte.com", empleadoId: "EMP-1003", rol: "APROBADOR", territorioId: "territorio-guadalajara", telefono: "5550000004", area: "Ventas" },
+  { ...createBaseEntity("user-4", "user-admin"), nombreCompleto: "Diego Ortega", correoCorporativo: "diego.ortega@banorte.com", empleadoId: "EMP-1004", rol: "COLABORADOR", territorioId: "territorio-monterrey", telefono: "5550000005", area: "Operaciones" },
+  { ...createBaseEntity("user-5", "user-admin"), nombreCompleto: "Patricia Vega", correoCorporativo: "patricia.vega@banorte.com", empleadoId: "EMP-1005", rol: "COLABORADOR", territorioId: "territorio-puebla", telefono: "5550000006", area: "Tecnología" },
+  { ...createBaseEntity("user-6", "user-admin"), nombreCompleto: "Eduardo Cruz", correoCorporativo: "eduardo.cruz@banorte.com", empleadoId: "EMP-1006", rol: "COLABORADOR", territorioId: "territorio-queretaro", telefono: "5550000007", area: "Ventas" },
+  { ...createBaseEntity("user-7", "user-admin"), nombreCompleto: "Karina Solís", correoCorporativo: "karina.solis@banorte.com", empleadoId: "EMP-1007", rol: "COLABORADOR", territorioId: "territorio-merida", telefono: "5550000008", area: "Dirección" },
 ];
 
 export const demoVehiculos: Vehiculo[] = [
@@ -153,7 +153,22 @@ export const demoCheckOuts: CheckOut[] = [
   },
 ];
 export const demoIncidencias: Incidencia[] = [
-  { ...createBaseEntity("inc-1", "user-1", "ACTIVO"), reservacionId: "res-2", vehiculoId: "veh-2", usuarioReportaId: "user-4", tipoIncidencia: "FALLA_MECANICA", severidad: "ALTA", descripcion: "El vehículo presentó un problema en el sistema de frenos", estadoIncidencia: "ABIERTA" },
+  {
+    ...createBaseEntity("inc-1", "user-1", "ACTIVO"),
+    reservacionId: "res-2",
+    vehiculoId: "veh-2",
+    usuarioReportaId: "user-4",
+    tipoIncidencia: "DANOS",
+    severidad: "ALTA",
+    descripcion: "El vehículo presentó un problema en el sistema de frenos",
+    fotos: [],
+    responsableId: "user-admin",
+    fechaCompromiso: "2025-01-25",
+    bitacora: [
+      { id: "inc-1-bit-1", fecha: "2025-01-16T09:00:00-06:00", usuarioId: "user-4", comentario: "Reporte inicial del conductor al notar el problema de frenos." },
+    ],
+    estadoIncidencia: "ABIERTA",
+  },
 ];
 export const demoMantenimientos: Mantenimiento[] = [
   { ...createBaseEntity("mant-1", "user-admin", "ACTIVO"), vehiculoId: "veh-3", tipoMantenimiento: "REVISION_GENERAL", fechaProgramada: "2025-01-20", fechaRealizada: "2025-01-19", costo: 4800, responsable: "Taller Banorte" },
