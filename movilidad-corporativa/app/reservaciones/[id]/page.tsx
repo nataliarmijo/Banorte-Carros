@@ -18,6 +18,43 @@ import {
 import { esResultadoSinDatos } from "@/lib/services/types";
 import { MEDIO_LABELS } from "@/lib/ui/estado-solicitud";
 import { EstadoBadge } from "@/components/estado-badge";
+import { InfoTooltip } from "@/components/info-tooltip";
+import { toast } from "@/lib/toast";
+import { ASIGNACION_CONFIG } from "@/lib/config/asignacion";
+import type { DesglosePuntaje } from "@/lib/services/servicioAsignacion";
+
+const CRITERIOS_PUNTAJE: { clave: keyof DesglosePuntaje; etiqueta: string; descripcion: string }[] = [
+  {
+    clave: "compatibilidad",
+    etiqueta: "Compatibilidad",
+    descripcion: "Qué tan bien coinciden el tipo de vehículo y la capacidad de pasajeros con lo solicitado.",
+  },
+  {
+    clave: "proximidad",
+    etiqueta: "Proximidad",
+    descripcion: "Qué tan cerca está el vehículo del origen del viaje; el puntaje baja mientras más lejos esté.",
+  },
+  {
+    clave: "utilizacion",
+    etiqueta: "Utilización reciente",
+    descripcion: "Vehículos usados con menos frecuencia últimamente puntúan más alto, para repartir el uso entre toda la flotilla.",
+  },
+  {
+    clave: "balanceKilometraje",
+    etiqueta: "Balance de kilometraje",
+    descripcion: "Favorece a los vehículos con menos kilometraje relativo a los demás candidatos disponibles, para parejar el desgaste.",
+  },
+  {
+    clave: "riesgoMantenimiento",
+    etiqueta: "Riesgo de mantenimiento",
+    descripcion: "Penaliza vehículos con un mantenimiento programado próximo o vencido.",
+  },
+  {
+    clave: "incidencias",
+    etiqueta: "Ausencia de incidencias",
+    descripcion: "Favorece a los vehículos sin incidencias reportadas en la ventana reciente configurada.",
+  },
+];
 
 function formatearFecha(fechaISO: string | null): string {
   if (!fechaISO) return "Pendiente";
@@ -64,8 +101,10 @@ export default function DetalleReservacionPage() {
       const resultado = await cancelarSolicitud(detalle.solicitud.id, usuarioActivo.id);
       if (esResultadoSinDatos(resultado)) {
         setErrorCancelar(resultado.detalle);
+        toast.error("No se pudo cancelar", resultado.detalle);
         return;
       }
+      toast.success("Reservación cancelada");
       await cargar();
     } finally {
       setCancelando(false);
@@ -163,6 +202,39 @@ export default function DetalleReservacionPage() {
                 ))}
               </ol>
             </section>
+
+            {detalle.puntajeAsignacion && (
+              <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-base font-semibold text-slate-900">Puntaje de asignación</h3>
+                  <span className="text-2xl font-semibold text-slate-900">{Math.round(detalle.puntajeAsignacion.puntajeTotal)}/100</span>
+                </div>
+                <p className="mt-1 text-xs text-slate-500">
+                  Recalculado con los datos actuales de la flotilla (utilización, kilometraje, mantenimiento e incidencias pueden haber cambiado
+                  desde el momento en que se asignó este vehículo).
+                </p>
+                <ul className="mt-4 space-y-3">
+                  {CRITERIOS_PUNTAJE.map((criterio) => {
+                    const valor = detalle.puntajeAsignacion!.desglose[criterio.clave];
+                    const peso = ASIGNACION_CONFIG.pesos[criterio.clave];
+                    return (
+                      <li key={criterio.clave}>
+                        <div className="flex items-center justify-between gap-2 text-sm">
+                          <span className="flex items-center gap-1.5 font-medium text-slate-700">
+                            {criterio.etiqueta}
+                            <InfoTooltip texto={`${criterio.descripcion} Pesa ${Math.round(peso * 100)}% del puntaje total.`} />
+                          </span>
+                          <span className="text-slate-500">{Math.round(valor * 100)}%</span>
+                        </div>
+                        <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                          <div className="h-full rounded-full bg-blue-600" style={{ width: `${Math.round(valor * 100)}%` }} />
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            )}
 
             {detalle.checkOut && (
               <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">

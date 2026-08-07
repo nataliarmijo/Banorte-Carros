@@ -2,6 +2,7 @@
 
 import type { SeccionAhorroDashboard } from "@/lib/adapters/analitica";
 import { esResultadoSinDatos } from "@/lib/services/types";
+import { InfoTooltip } from "@/components/info-tooltip";
 import { COLOR_POOL } from "../_lib/colores";
 import { formatoMxn, formatoOSinDatos, formatoPorcentaje } from "../_lib/formato";
 import { GraficoLineaMensual } from "./graficos";
@@ -22,11 +23,17 @@ export function SeccionAhorro({ ahorro }: { ahorro: SeccionAhorroDashboard }) {
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-2xl bg-emerald-50 p-4">
-              <p className="text-xs text-emerald-700">Ahorro total del periodo</p>
+              <p className="flex items-center gap-1 text-xs text-emerald-700">
+                Ahorro total del periodo
+                <InfoTooltip texto={`Costo del escenario base menos el costo real optimizado. ${resultado.escenarioBase.descripcion}`} />
+              </p>
               <p className="text-2xl font-semibold text-emerald-700">{formatoMxn(resultado.ahorroTotal)}</p>
             </div>
             <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-xs text-slate-500">Costo escenario base</p>
+              <p className="flex items-center gap-1 text-xs text-slate-500">
+                Costo escenario base
+                <InfoTooltip texto="Cuánto hubiera costado la movilidad SIN el programa; ver los supuestos completos abajo." />
+              </p>
               <p className="text-lg font-semibold text-slate-900">{formatoMxn(resultado.costoBaseEstimado)}</p>
             </div>
             <div className="rounded-2xl bg-slate-50 p-4">

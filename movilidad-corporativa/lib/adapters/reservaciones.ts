@@ -14,7 +14,44 @@ import {
 import type { Aprobacion, CheckIn, CheckOut, EstadoSolicitud, Reservacion, RegistroAuditoria, Solicitud } from "@/lib/models";
 import { PARAMS_CONFIG } from "@/lib/config/params";
 import { crearResultadoSinDatos } from "@/lib/services/types";
-import type { ResultadoSinDatos } from "@/lib/services/types";
+import type { ResultadoSinDatos, TipoVehiculo } from "@/lib/services/types";
+import { construirCandidatosFlota } from "@/lib/adapters/flota";
+import { puntuarVehiculo, type SolicitudAsignacion, type VehiculoPuntuado } from "@/lib/services/servicioAsignacion";
+
+const TIPOS_VEHICULO_VALIDOS: readonly TipoVehiculo[] = ["sedan-compacto", "sedan-ejecutivo", "suv-asignado"];
+function esTipoVehiculoValido(valor: string | undefined): valor is TipoVehiculo {
+  return TIPOS_VEHICULO_VALIDOS.includes(valor as TipoVehiculo);
+}
+
+/**
+ * Recalcula, con los datos ACTUALES de la flotilla (utilización, kilometraje,
+ * mantenimiento, incidencias), el puntaje ponderado que el motor de
+ * asignación (Chunk 5) le daría hoy al vehículo ya asignado — para que el
+ * historial de la reservación pueda explicar "por qué se eligió este
+ * vehículo". No es necesariamente idéntico al puntaje en el momento de la
+ * asignación original (las condiciones de la flotilla cambian con el
+ * tiempo); por eso siempre se marca como estimado/recalculado.
+ */
+async function calcularPuntajeAsignacionActual(solicitud: Solicitud, reservacion: Reservacion | null): Promise<VehiculoPuntuado | null> {
+  if (!reservacion || reservacion.modalidadAsignada === "UBER") return null;
+  if (!esTipoVehiculoValido(solicitud.tipoVehiculoRequerido)) return null;
+
+  const candidatos = await construirCandidatosFlota(solicitud.territorioId);
+  const delMismaModalidad = candidatos.filter((c) => c.modalidad === reservacion.modalidadAsignada);
+  const asignado = delMismaModalidad.find((c) => c.id === reservacion.vehiculoId);
+  if (!asignado) return null;
+
+  const solicitudAsignacion: SolicitudAsignacion = {
+    territorio: solicitud.territorioId,
+    origen: solicitud.territorioId,
+    fechaSalida: new Date(reservacion.fechaInicio),
+    fechaRegreso: new Date(reservacion.fechaFin),
+    tipoVehiculoRequerido: solicitud.tipoVehiculoRequerido,
+    pasajeros: solicitud.pasajeros && solicitud.pasajeros > 0 ? solicitud.pasajeros : 1,
+  };
+
+  return puntuarVehiculo(asignado, solicitudAsignacion, delMismaModalidad);
+}
 
 export interface SolicitudListItem {
   solicitud: Solicitud;
@@ -79,6 +116,8 @@ export interface DetalleSolicitud {
   historial: DecisionHistorialItem[];
   /** Cifras reales del viaje (check-out), cuando ya se completó. */
   checkOut: CheckOut | null;
+  /** Puntaje del motor de asignación (Chunk 5) recalculado con datos actuales; null si es Uber o no se pudo recalcular. */
+  puntajeAsignacion: VehiculoPuntuado | null;
 }
 
 function construirTimeline(
@@ -239,7 +278,10 @@ export async function obtenerDetalleSolicitud(solicitudId: string): Promise<Deta
   const checkOut = checkOuts[0] ?? null;
   const decisionFinal = aprobaciones.find((a) => a.decision === "APROBADA" || a.decision === "RECHAZADA");
 
-  const [historial] = await Promise.all([construirHistorial(aprobaciones, [...auditoriaSolicitud, ...auditoriaReservacion])]);
+  const [historial, puntajeAsignacion] = await Promise.all([
+    construirHistorial(aprobaciones, [...auditoriaSolicitud, ...auditoriaReservacion]),
+    calcularPuntajeAsignacionActual(solicitud, reservacion),
+  ]);
   const timeline = construirTimeline(solicitud, reservacion, checkIn, checkOut, decisionFinal);
 
   const territorio = PARAMS_CONFIG.territorios[solicitud.territorioId as keyof typeof PARAMS_CONFIG.territorios];
@@ -253,6 +295,7 @@ export async function obtenerDetalleSolicitud(solicitudId: string): Promise<Deta
     timeline,
     historial,
     checkOut,
+    puntajeAsignacion,
   };
 }
 
