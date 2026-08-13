@@ -74,3 +74,15 @@ export class MobilityDexieDB extends Dexie {
 }
 
 export const db = new MobilityDexieDB();
+
+// Si otra pestaña abre una versión más nueva del esquema, esta conexión debe
+// cerrarse para liberar el bloqueo; de lo contrario IndexedDB deja la
+// solicitud de upgrade de la otra pestaña "blocked" indefinidamente y todas
+// las pestañas (incluida esta) se quedan colgadas esperando a que la base
+// de datos abra.
+db.on("versionchange", () => {
+  db.close();
+  if (typeof window !== "undefined") {
+    window.location.reload();
+  }
+});
