@@ -419,7 +419,19 @@ export async function sincronizarConfiguracionPersistida(): Promise<void> {
   for (const seccion of SECCIONES) {
     const fila = filaPorClave.get(seccion.clave);
     if (fila) {
-      seccion.aplicar(JSON.parse(fila.valorJson));
+      try {
+        const valorPersistido = JSON.parse(fila.valorJson);
+        if (!esObjetoPlano(valorPersistido) && !Array.isArray(valorPersistido)) {
+          throw new Error(`Valor persistido inválido para "${seccion.clave}"`);
+        }
+        seccion.aplicar(valorPersistido);
+      } catch {
+        // Fila corrupta (p. ej. de una versión anterior o un guardado
+        // incompleto): usa el valor de fábrica en memoria en vez de tumbar
+        // el arranque de toda la app. La fila corrupta se sobreescribe la
+        // próxima vez que se guarde esta sección desde /administracion.
+        seccion.aplicar(JSON.parse(JSON.stringify(VALORES_POR_DEFECTO.get(seccion.clave))));
+      }
     } else {
       const valorPorDefecto = VALORES_POR_DEFECTO.get(seccion.clave);
       seccion.aplicar(JSON.parse(JSON.stringify(valorPorDefecto)));
